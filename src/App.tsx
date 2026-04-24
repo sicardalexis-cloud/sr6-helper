@@ -11,6 +11,7 @@ function App() {
     physical: 3,
     stun: 2,
     drainStun: 0,
+    minorActions: 1,
   });
 
   const update = (key: string, value: number) => setChar(p => ({ ...p, [key]: value }));
@@ -78,10 +79,18 @@ function App() {
 
             <div className="lg:col-span-5 bg-[#1a2338] border border-[#00ccff]/40 rounded-2xl p-6">
               <div className="text-[#00ccff] text-sm tracking-widest">MINOR ACTIONS</div>
-              <div className="text-6xl font-bold text-white">1</div>
+              <div className="flex items-center justify-center gap-3 mt-4">
+                {Array.from({length: 3}).map((_, i) => (
+                  <div key={i} className={`w-10 h-10 rounded-full border-2 ${i < char.minorActions ? 'bg-[#00ccff] border-[#00ccff]' : 'border-[#00ccff]/40'}`} />
+                ))}
+              </div>
+              <div className="flex justify-center gap-3 mt-4">
+                <button onClick={() => update('minorActions', Math.max(0, char.minorActions - 1))} className="bg-red-500 text-white px-4 py-2 rounded-xl font-bold">-</button>
+                <button onClick={() => update('minorActions', Math.min(3, char.minorActions + 1))} className="bg-green-500 text-white px-4 py-2 rounded-xl font-bold">+</button>
+              </div>
               <div className="flex gap-3 mt-6">
-                <button className="flex-1 bg-[#00ccff] text-black py-3 rounded-xl font-bold hover:bg-white">Spend -1</button>
-                <button className="flex-1 border border-[#00ccff] py-3 rounded-xl text-[#00ccff]">Reset</button>
+                <button onClick={() => update('minorActions', Math.max(0, char.minorActions - 1))} className="flex-1 bg-[#00ccff] text-black py-3 rounded-xl font-bold hover:bg-white">Spend -1</button>
+                <button onClick={() => update('minorActions', 3)} className="flex-1 border border-[#00ccff] py-3 rounded-xl text-[#00ccff]">Reset</button>
               </div>
             </div>
           </div>
@@ -143,14 +152,14 @@ function App() {
           {/* Bottom Buttons - Onglets */}
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: "👻", label: "SPIRITS & SUMMONING", color: "purple" },
-              { icon: "✨", label: "SPELLS & ASTRAL COMBAT", color: "cyan" },
-              { icon: "⚔️", label: "ATTACK & COMBAT", color: "red" },
-              { icon: "❤️", label: "REST & RECOVERY", color: "emerald" },
+              { icon: "👻", label: "SPIRITS & SUMMONING" },
+              { icon: "✨", label: "SPELLS & ASTRAL COMBAT" },
+              { icon: "⚔️", label: "ATTACK & COMBAT" },
+              { icon: "❤️", label: "REST & RECOVERY" },
             ].map((btn, i) => (
               <button
                 key={i}
-                className={`bg-gradient-to-r from-${btn.color}-950 to-black border border-${btn.color}-500/50 hover:border-${btn.color}-400 p-5 md:p-6 rounded-2xl text-left flex items-center gap-4 transition-all hover:scale-105`}
+                className="bg-gradient-to-r from-cyan-950 to-black border border-cyan-500/50 hover:border-cyan-400 p-5 md:p-6 rounded-2xl text-left flex items-center gap-4 transition-all hover:scale-105"
               >
                 <span className="text-3xl md:text-4xl">{btn.icon}</span>
                 <div className="font-bold text-sm md:text-base">{btn.label}</div>
