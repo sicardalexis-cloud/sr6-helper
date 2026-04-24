@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #02040a;
+    color: #00ff9f;
+    font-family: 'Courier New', 'Lucida Console', monospace;
+  }
+
+  .terminal-frame {
+    background-color: #0a0f1c;
+    border: 2px solid #334466;
+    box-shadow: 0 0 30px rgba(0, 255, 159, 0.15);
+  }
+
+  .neon-text {
+    text-shadow: 0 0 8px #00ff9f, 0 0 16px #00ff9f;
+  }
+
+  .neon-cyan {
+    text-shadow: 0 0 8px #00ccff, 0 0 16px #00ccff;
+  }
+}
