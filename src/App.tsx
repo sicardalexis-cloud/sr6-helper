@@ -12,6 +12,7 @@ function App() {
     stun: 2,
     drainStun: 0,
     minorActions: 1,
+    minorActionSlots: 3,
   });
 
   const update = (key: string, value: number) => setChar(p => ({ ...p, [key]: value }));
@@ -63,14 +64,20 @@ function App() {
           {/* Edge Pool + Combat Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
             <div className="lg:col-span-7 bg-gradient-to-br from-amber-950 to-[#1a2338] border border-amber-400/40 rounded-2xl p-6">
-              <div className="flex justify-between mb-4">
-                <div className="text-amber-400 font-bold">⭐ EDGE POOL</div>
-                <div className="text-amber-400">{char.edgeCurrent} / {char.edge}</div>
+              <div className="flex justify-between mb-4 items-center">
+                <div>
+                  <div className="text-amber-400 font-bold">⭐ EDGE POOL</div>
+                  <div className="text-amber-400 text-sm">{char.edgeCurrent} / {char.edge}</div>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => update('edgeCurrent', Math.max(0, char.edgeCurrent - 1))} className="bg-[#00ccff] text-black px-3 py-1 rounded-xl font-bold">-</button>
+                  <button onClick={() => update('edgeCurrent', Math.min(char.edge, char.edgeCurrent + 1))} className="bg-[#00ccff] text-black px-3 py-1 rounded-xl font-bold">+</button>
+                </div>
               </div>
               <div className="flex gap-3 flex-wrap">
                 {Array.from({length: char.edge}).map((_, i) => (
                   <div key={i} onClick={() => setChar(p => ({...p, edgeCurrent: Math.max(0, p.edgeCurrent-1)}))}
-                    className={`w-11 h-11 rounded-xl border-2 flex items-center justify-center text-2xl cursor-pointer transition-all ${i < char.edgeCurrent ? 'bg-amber-400 text-black border-amber-400' : 'border-amber-400/40'}`}>
+                    className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl cursor-pointer transition-all ${i < char.edgeCurrent ? 'bg-amber-400 text-black border-amber-400' : 'border-amber-400/40'}`}>
                     ◆
                   </div>
                 ))}
@@ -78,19 +85,25 @@ function App() {
             </div>
 
             <div className="lg:col-span-5 bg-[#1a2338] border border-[#00ccff]/40 rounded-2xl p-6">
-              <div className="text-[#00ccff] text-sm tracking-widest">MINOR ACTIONS</div>
+              <div className="flex items-center justify-between">
+                <div className="text-[#00ccff] text-sm tracking-widest">MINOR ACTIONS</div>
+                <div className="flex gap-3">
+                  <button onClick={() => {
+                    const newSlots = Math.max(1, char.minorActionSlots - 1);
+                    update('minorActionSlots', newSlots);
+                    if (char.minorActions > newSlots) update('minorActions', newSlots);
+                  }} className="bg-[#00ccff] text-black px-3 py-1 rounded-xl font-bold">-</button>
+                  <button onClick={() => update('minorActionSlots', Math.min(6, char.minorActionSlots + 1))} className="bg-[#00ccff] text-black px-3 py-1 rounded-xl font-bold">+</button>
+                </div>
+              </div>
               <div className="flex items-center justify-center gap-3 mt-4">
-                {Array.from({length: 3}).map((_, i) => (
+                {Array.from({length: char.minorActionSlots}).map((_, i) => (
                   <div key={i} className={`w-10 h-10 rounded-full border-2 ${i < char.minorActions ? 'bg-[#00ccff] border-[#00ccff]' : 'border-[#00ccff]/40'}`} />
                 ))}
               </div>
-              <div className="flex justify-center gap-3 mt-4">
-                <button onClick={() => update('minorActions', Math.max(0, char.minorActions - 1))} className="bg-red-500 text-white px-4 py-2 rounded-xl font-bold">-</button>
-                <button onClick={() => update('minorActions', Math.min(3, char.minorActions + 1))} className="bg-green-500 text-white px-4 py-2 rounded-xl font-bold">+</button>
-              </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={() => update('minorActions', Math.max(0, char.minorActions - 1))} className="flex-1 bg-[#00ccff] text-black py-3 rounded-xl font-bold hover:bg-white">Spend -1</button>
-                <button onClick={() => update('minorActions', 3)} className="flex-1 border border-[#00ccff] py-3 rounded-xl text-[#00ccff]">Reset</button>
+                <button onClick={() => update('minorActions', char.minorActionSlots)} className="flex-1 border border-[#00ccff] py-3 rounded-xl text-[#00ccff]">Reset</button>
               </div>
             </div>
           </div>
