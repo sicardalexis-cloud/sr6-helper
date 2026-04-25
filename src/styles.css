@@ -1,0 +1,272 @@
+/* --- GLOBAL --- */
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  font-family: Arial, sans-serif;
+  color: white;
+}
+
+.app-container {
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+}
+
+.character-card {
+  background: #1a1a1a;
+  padding: 25px;
+  border-radius: 12px;
+  width: 380px;
+  box-shadow: 0 0 20px #000;
+}
+
+/* --- HEADER --- */
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.char-name {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #f7d354;
+}
+
+.char-role {
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* --- ATTRIBUTES PANEL --- */
+
+.attributes-panel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.attribute-box {
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #444;
+}
+
+.attr-label {
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: #f7d354;
+}
+
+.attr-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.attr-btn {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.attr-value {
+  font-size: 1.1rem;
+}
+
+/* --- EDGE POOL --- */
+
+.edge-panel {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.edge-title {
+  font-size: 1.2rem;
+  color: #f7d354;
+  margin-bottom: 8px;
+}
+
+.edge-diamonds {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.diamond {
+  width: 22px;
+  height: 22px;
+  transform: rotate(45deg);
+}
+
+.edge-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.edge-btn {
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  padding: 4px 10px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.edge-value {
+  color: white;
+  font-size: 1.1rem;
+}
+
+/* --- MINOR ACTIONS --- */
+
+.minor-panel {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.minor-title {
+  font-size: 1.2rem;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.minor-circles {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.circle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+}
+
+.minor-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.minor-btn {
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* --- CONDITION MONITORS --- */
+
+.monitors-panel {
+  margin-top: 25px;
+}
+
+.monitor-section {
+  margin-bottom: 25px;
+}
+
+.monitor-title {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.monitor-title.red {
+  color: #ff4d4d;
+}
+
+.monitor-title.yellow {
+  color: #f7d354;
+}
+
+.monitor-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.monitor-box {
+  width: 22px;
+  height: 22px;
+}
+
+.monitor-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.monitor-btn {
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.monitor-value {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.monitor-subtitle {
+  text-align: center;
+  color: #ccc;
+  margin-top: 6px;
+}
+
+/* --- BOTTOM SECTIONS --- */
+
+.bottom-sections {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bottom-button {
+  padding: 12px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid;
+}
+
+.bottom-button.green {
+  color: #7cff7c;
+  border-color: #7cff7c;
+}
+
+.bottom-button.yellow {
+  color: #f7d354;
+  border-color: #f7d354;
+}
+
+.bottom-button.red {
+  color: #ff4d4d;
+  border-color: #ff4d4d;
+}
+
+.bottom-icon {
+  margin-right: 8px;
+}

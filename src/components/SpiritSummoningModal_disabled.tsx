@@ -59,8 +59,7 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
       setTotalDrainThisSummon(0);
     }
 
-    const newAttempt = attemptCount + 1;
-    setAttemptCount(newAttempt);
+    setAttemptCount(prev => prev + 1);
 
     const conj = rollDice(conjuringPool);
     const spirit = rollDice(spiritForce * 2);
@@ -68,13 +67,16 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
 
     const netHits = Math.max(0, conj.hits - spirit.hits);
     const drainDamage = Math.max(0, spirit.hits - drain.hits);
-    const newTotalDrain = totalDrainThisSummon + drainDamage;
 
     setConjuringDice(conj.dice);
     setSpiritDice(spirit.dice);
     setDrainDice(drain.dice);
-    setTotalDrainThisSummon(newTotalDrain);
+
+    setTotalDrainThisSummon(prev => prev + drainDamage);
     setServices(netHits);
+
+    const newAttempt = attemptCount + 1;
+    const newTotalDrain = totalDrainThisSummon + drainDamage;
 
     let message = netHits > 0
       ? `✅ Invocation réussie ! ${netHits} service${netHits > 1 ? 's' : ''} après ${newAttempt} essai${newAttempt > 1 ? 's' : ''}`
@@ -97,19 +99,9 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
     }
   };
 
-  const validateSummon = () => {
-    const newSpirit: SummonedSpirit = {
-      type: selectedSpirit,
-      force: spiritForce,
-      services: services,
-      timestamp: new Date().toLocaleTimeString()
-    };
-
-    onSpiritValidated(newSpirit, totalDrainThisSummon);
-
-    alert(`✅ ${selectedSpirit} Spirit validé !\nServices: ${services} | Drain: ${totalDrainThisSummon}`);
-    resetAll();
-  };
+  // ---------------------------------------------------------
+  // 🔧 FONCTIONS MANQUANTES AJOUTÉES ICI
+  // ---------------------------------------------------------
 
   const resetAll = () => {
     setConjuringDice([]);
@@ -117,10 +109,27 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
     setDrainDice([]);
     setTotalDrainThisSummon(0);
     setServices(0);
-    setAttemptCount(0);
     setResultMessage("");
+    setAttemptCount(0);
     setIsSummoning(false);
   };
+
+  const validateSummon = () => {
+    const spirit: SummonedSpirit = {
+      type: selectedSpirit,
+      force: spiritForce,
+      services: services,
+      timestamp: new Date().toLocaleString()
+    };
+
+    setSummonedSpirits(prev => [...prev, spirit]);
+
+    onSpiritValidated(spirit, totalDrainThisSummon);
+
+    resetAll();
+  };
+
+  // ---------------------------------------------------------
 
   if (!isOpen) return null;
 
@@ -137,6 +146,7 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
         </div>
 
         <div className="p-6 space-y-8">
+
           {/* Spirit Type */}
           <div>
             <div className="text-sm text-gray-400 mb-3">SPIRIT TYPE</div>
@@ -274,6 +284,7 @@ export default function SpiritSummoningModal({ isOpen, onClose, onSpiritValidate
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>
