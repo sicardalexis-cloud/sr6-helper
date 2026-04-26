@@ -1,31 +1,40 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect } from 'react';
 
-const initialCharacter = {
-  name: "KAGE",
-  attributes: {
-    BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3,
-    LOG: 3, INT: 3, CHA: 3, MAGIC: 0, ESSENCE: 3
-  },
-  edge: { current: 0, max: 7 },
-  minorActions: { current: 1, max: 3 },
-  physical: { current: 0, max: 10 },
-  stun: { 
-    total: { current: 0, max: 10 },
-    normal: { current: 0, max: 6 },
-    drain: { current: 0, max: 6 }
-  }
-};
+const STORAGE_KEY = 'kage-character';
 
 export function useCharacter() {
-  const [char, setChar] = useState(initialCharacter);
+  const [char, setChar] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {
+      name: "KAGE",
+      attributes: {
+        BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3,
+        LOG: 3, INT: 3, CHA: 3, MAGIC: 0, ESSENCE: 3
+      },
+      edge: { current: 0, max: 7 },
+      minorActions: { current: 1, max: 3 },
+      physical: 0,
+      stun: 0
+    };
+  });
 
-  const update = useCallback((updater: (draft: any) => void) => {
+  // Sauvegarde automatique à chaque changement
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
+  }, [char]);
+
+  const update = (fn: (draft: any) => void) => {
     setChar(prev => {
       const draft = { ...prev };
-      updater(draft);
+      fn(draft);
       return draft;
     });
-  }, []);
+  };
 
-  return { char, update };
+  const resetCharacter = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  };
+
+  return { char, update, resetCharacter };
 }
