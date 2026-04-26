@@ -17,6 +17,10 @@ export default function ConditionMonitors({ char, update }: Props) {
   const drainStun = Number(char.drainStun ?? 0);
   const totalStun = normalStun + drainStun;
 
+  const physicalPenalty = Math.floor(physicalCurrent / 3);
+  const stunPenalty = Math.floor(totalStun / 3);
+  const totalPenalty = physicalPenalty + stunPenalty;
+
   const handleClick = (type: "physical" | "normalStun" | "drainStun", index: number) => {
     update((draft: any) => {
       if (type === "physical") {
@@ -50,8 +54,17 @@ export default function ConditionMonitors({ char, update }: Props) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       
+      {/* MALUS GLOBAL */}
+      <div style={{ textAlign: "center", marginBottom: "12px" }}>
+        <div style={{ color: "#facc15", fontWeight: "bold", fontSize: "1.25rem" }}>
+          MALUS DE DÉS : <span style={{ color: totalPenalty > 0 ? "#ef4444" : "#4ade80" }}>
+            {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
+          </span>
+        </div>
+      </div>
+
       {/* PHYSICAL */}
       <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <div style={{ color: "#ef4444", fontWeight: "bold", width: "110px", textAlign: "right" }}>
