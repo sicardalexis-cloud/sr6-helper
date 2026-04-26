@@ -52,44 +52,36 @@ export default function ConditionMonitors({ char, update }: Props) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
       
+      {/* PHYSICAL */}
       <div>
         <div style={{ color: "#ef4444", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
-          PHYSICAL MONITOR
+          PHYSICAL
         </div>
         {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
-        <div style={{ textAlign: "center", marginTop: "8px", color: "#94a3b8" }}>
-          {physicalCurrent} / {physicalMax}
-        </div>
       </div>
 
+      {/* STUN */}
       <div>
         <div style={{ color: "#eab308", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
-          STUN MONITOR
+          STUN
         </div>
         {renderBoxes(normalStun, stunMax, "#eab308", "normalStun")}
-        <div style={{ textAlign: "center", marginTop: "8px", color: "#94a3b8" }}>
-          {normalStun} / {stunMax}
-        </div>
       </div>
 
+      {/* DRAIN STUN */}
       <div>
         <div style={{ color: "#a855f7", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
           DRAIN STUN
         </div>
         {renderBoxes(drainStun, stunMax, "#a855f7", "drainStun")}
-        <div style={{ textAlign: "center", marginTop: "8px", color: "#94a3b8" }}>
-          {drainStun} / {stunMax}
-        </div>
       </div>
 
+      {/* TOTAL STUN */}
       <div>
         <div style={{ color: "#facc15", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
           TOTAL STUN
         </div>
         {renderBoxes(totalStun, stunMax, "#facc15")}
-        <div style={{ textAlign: "center", marginTop: "8px", color: "#94a3b8", fontWeight: "bold" }}>
-          {totalStun} / {stunMax}
-        </div>
       </div>
 
     </div>
