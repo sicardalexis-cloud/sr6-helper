@@ -12,21 +12,29 @@ export default function EdgePool({ char, update }: Props) {
   const handleDiamondClick = (index: number) => {
     update((draft: any) => {
       if (!draft.edge) draft.edge = { current: 0, max: 7 };
-      
-      // Si on clique sur un diamond déjà rempli → on vide jusqu'à ce point
-      // Sinon → on remplit jusqu'à ce diamond
       draft.edge.current = draft.edge.current === index + 1 ? index : index + 1;
     });
   };
 
   return (
     <div className="edge-pool">
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "#eab308", fontWeight: "bold" }}>
-        ★ EDGE POOL 
-        <span style={{ color: "#eab308" }}>{current} / {max}</span>
+      <div style={{ 
+        color: "#eab308", 
+        fontWeight: "bold", 
+        fontSize: "1.1rem",
+        marginBottom: "12px",
+        textAlign: "center"
+      }}>
+        ★ EDGE POOL
       </div>
 
-      <div style={{ display: "flex", gap: "10px", cursor: "pointer" }}>
+      <div style={{ 
+        display: "flex", 
+        gap: "10px", 
+        justifyContent: "center", 
+        cursor: "pointer",
+        flexWrap: "wrap"
+      }}>
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
@@ -38,15 +46,11 @@ export default function EdgePool({ char, update }: Props) {
               transform: "rotate(45deg)",
               borderRadius: "6px",
               border: "3px solid #111827",
-              boxShadow: i < current ? "0 0 18px #eab308" : "none",
+              boxShadow: i < current ? "0 0 20px #eab308" : "none",
               transition: "all 0.2s"
             }}
           />
         ))}
-      </div>
-
-      <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "8px", textAlign: "center" }}>
-        Cliquez sur les losanges pour modifier
       </div>
     </div>
   );
