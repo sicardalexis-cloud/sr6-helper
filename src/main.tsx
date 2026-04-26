@@ -1,7 +1,7 @@
-import React from 'react'
+/// <reference types="vite/client" />
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
-import './styles.css'        // ← THIS LINE IS PROBABLY MISSING
+import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 <App />

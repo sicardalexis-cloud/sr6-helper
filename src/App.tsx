@@ -1,4 +1,4 @@
-import React from "react";
+/// <reference types="vite/client" />
 import "./styles.css";
 import { useCharacter } from "./hooks/useCharacter";
 

@@ -1,4 +1,4 @@
-import React from "react";
+
 
 const attrs = ["BOD", "AGI", "REA", "STR", "WIL", "LOG", "INT", "CHA", "MAGIC", "ESSENCE"];
 
