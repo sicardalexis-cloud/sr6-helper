@@ -41,8 +41,8 @@ export default function EdgePool({ char, update }: Props) {
             key={i}
             onClick={() => handleDiamondClick(i)}
             style={{
-              width: "46px",
-              height: "46px",
+              width: "44px",
+              height: "44px",
               background: i < current ? "#eab308" : "#1e2937",
               transform: "rotate(45deg)",
               borderRadius: "6px",
