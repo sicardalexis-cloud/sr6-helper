@@ -33,7 +33,7 @@ export default function EdgePool({ char, update }: Props) {
         gap: "10px", 
         justifyContent: "center", 
         flexWrap: "wrap",
-        WebkitTapHighlightColor: "transparent",   // ← Important pour mobile
+        WebkitTapHighlightColor: "transparent",
         touchAction: "manipulation"
       }}>
         {Array.from({ length: max }).map((_, i) => (
@@ -48,6 +48,9 @@ export default function EdgePool({ char, update }: Props) {
               borderRadius: "6px",
               border: "3px solid #111827",
               transition: "all 0.2s",
+              boxShadow: i < current 
+                ? "0 0 15px #eab308, 0 0 25px rgba(234, 179, 8, 0.6)" 
+                : "none",
               WebkitTapHighlightColor: "transparent",
               touchAction: "manipulation",
               cursor: "pointer"
