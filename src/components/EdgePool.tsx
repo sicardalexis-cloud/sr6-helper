@@ -1,41 +1,73 @@
 import React from "react";
-import type { Character } from "../types/types";
-import Diamond from "./UI/Diamond";
 
 interface Props {
-  char: Character;
-  update: (key: keyof Character, value: number) => void;
+  char: any;
+  update: (fn: (draft: any) => void) => void;
 }
 
 export default function EdgePool({ char, update }: Props) {
-  const { edgeCurrent, edgeMax } = char;
+  const current = char.edge?.current ?? 0;
+  const max = char.edge?.max ?? 7;
 
-  const diamonds = [];
-  for (let i = 0; i < edgeMax; i++) {
-    diamonds.push(<Diamond key={i} filled={i < edgeCurrent} />);
-  }
+  const handleChange = (delta: number) => {
+    update((draft: any) => {
+      if (!draft.edge) draft.edge = { current: 0, max: 7 };
+      
+      const newCurrent = Math.max(0, Math.min(draft.edge.max, draft.edge.current + delta));
+      draft.edge.current = newCurrent;
+    });
+  };
 
   return (
-    <div className="edge-panel">
-      <div className="edge-title">EDGE POOL</div>
+    <div className="edge-pool">
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "#eab308", fontWeight: "bold" }}>
+        ★ EDGE POOL 
+        <span style={{ color: "#eab308" }}>{current} / {max}</span>
+      </div>
 
-      <div className="edge-diamonds">{diamonds}</div>
+      <div style={{ display: "flex", gap: "10px" }}>
+        {Array.from({ length: max }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: "48px",
+              height: "48px",
+              background: i < current ? "#eab308" : "#1e2937",
+              transform: "rotate(45deg)",
+              borderRadius: "6px",
+              border: "3px solid #111827",
+              boxShadow: i < current ? "0 0 18px #eab308" : "none"
+            }}
+          />
+        ))}
+      </div>
 
-      <div className="edge-controls">
+      <div style={{ display: "flex", gap: "10px" }}>
         <button
-          className="edge-btn"
-          onClick={() => update("edgeCurrent", edgeCurrent - 1)}
+          onClick={() => handleChange(-1)}
+          style={{
+            width: "54px",
+            height: "54px",
+            background: "#f59e0b",
+            color: "white",
+            fontSize: "1.8rem",
+            border: "none",
+            borderRadius: "10px"
+          }}
         >
-          –
+          -
         </button>
-
-        <div className="edge-value">
-          {edgeCurrent} / {edgeMax}
-        </div>
-
         <button
-          className="edge-btn"
-          onClick={() => update("edgeCurrent", edgeCurrent + 1)}
+          onClick={() => handleChange(1)}
+          style={{
+            width: "54px",
+            height: "54px",
+            background: "#f59e0b",
+            color: "white",
+            fontSize: "1.8rem",
+            border: "none",
+            borderRadius: "10px"
+          }}
         >
           +
         </button>

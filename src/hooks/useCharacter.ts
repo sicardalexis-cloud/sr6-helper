@@ -1,59 +1,31 @@
-import { useState, useEffect } from "react";
-import type { Character } from "../types/types";
-import { defaultCharacter } from "../data/characterDefaults";
+import { useState, useCallback } from "react";
 
-const STORAGE_KEY = "sr6-character";
+const initialCharacter = {
+  name: "KAGE",
+  attributes: {
+    BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3,
+    LOG: 3, INT: 3, CHA: 3, MAGIC: 0, ESSENCE: 3
+  },
+  edge: { current: 0, max: 7 },
+  minorActions: { current: 1, max: 3 },
+  physical: { current: 0, max: 10 },
+  stun: { 
+    total: { current: 0, max: 10 },
+    normal: { current: 0, max: 6 },
+    drain: { current: 0, max: 6 }
+  }
+};
 
 export function useCharacter() {
-  // Chargement initial
-  const load = (): Character => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch {
-      console.warn("Erreur JSON, reset");
-    }
-    return defaultCharacter;
-  };
+  const [char, setChar] = useState(initialCharacter);
 
-  const [char, setChar] = useState<Character>(load);
-
-  // Fonction générique de mise à jour
-  const update = (key: keyof Character, value: any) => {
+  const update = useCallback((updater: (draft: any) => void) => {
     setChar(prev => {
-      const updated = { ...prev, [key]: value };
-
-      // --- Recalcul des moniteurs SR6 ---
-      const physicalMax = Math.ceil(updated.body / 2) + 8;
-      const stunMax = Math.ceil(updated.willpower / 2) + 8;
-
-      // Clamp automatique si Body change
-      if (key === "body") {
-        updated.physical = Math.min(updated.physical, physicalMax);
-      }
-
-      // Clamp automatique si Willpower change
-      if (key === "willpower") {
-        updated.stun = Math.min(updated.stun, stunMax);
-      }
-
-      // --- Clamp Edge ---
-      updated.edgeCurrent = Math.max(
-        0,
-        Math.min(updated.edgeCurrent, updated.edgeMax)
-      );
-
-      // --- Clamp Minor Actions ---
-      updated.minor = Math.max(0, updated.minor);
-
-      return updated;
+      const draft = { ...prev };
+      updater(draft);
+      return draft;
     });
-  };
-
-  // Sauvegarde automatique
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
-  }, [char]);
+  }, []);
 
   return { char, update };
 }
