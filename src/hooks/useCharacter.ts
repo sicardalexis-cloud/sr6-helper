@@ -2,13 +2,24 @@ import { useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'kage-character';
 
+interface Character {
+  name: string;
+  attributes: Record<string, number>;
+  edge: { current: number; max: number };
+  minorActions: { current: number; max: number };
+  physical: number;
+  stun: number;
+}
+
 export function useCharacter() {
-  const [char, setChar] = useState(() => {
+  const [char, setChar] = useState<Character>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {}
+      } catch (e) {
+        console.error("Erreur localStorage");
+      }
     }
     return {
       name: "KAGE",
@@ -20,14 +31,13 @@ export function useCharacter() {
     };
   });
 
-  // Sauvegarde à chaque changement
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
 
-  const update = (fn: (draft: any) => void) => {
+  const update = (fn: (draft: Character) => void) => {
     setChar(prev => {
-      const draft = { ...prev };
+      const draft = { ...prev } as Character;
       fn(draft);
       return draft;
     });
