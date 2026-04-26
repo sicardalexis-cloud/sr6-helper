@@ -17,7 +17,7 @@ export default function EdgePool({ char, update }: Props) {
   };
 
   return (
-    <div className="edge-pool">
+    <div className="edge-pool" style={{ userSelect: "none" }}>
       <div style={{ 
         color: "#eab308", 
         fontWeight: "bold", 
@@ -32,8 +32,9 @@ export default function EdgePool({ char, update }: Props) {
         display: "flex", 
         gap: "10px", 
         justifyContent: "center", 
-        cursor: "pointer",
-        flexWrap: "wrap"
+        flexWrap: "wrap",
+        WebkitTapHighlightColor: "transparent",   // ← Important pour mobile
+        touchAction: "manipulation"
       }}>
         {Array.from({ length: max }).map((_, i) => (
           <div
@@ -47,7 +48,9 @@ export default function EdgePool({ char, update }: Props) {
               borderRadius: "6px",
               border: "3px solid #111827",
               transition: "all 0.2s",
-              // Glow retiré
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
+              cursor: "pointer"
             }}
           />
         ))}
