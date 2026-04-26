@@ -79,46 +79,24 @@ body {
   border-radius: 8px;
 }
 
-/* ==================== EDGE POOL ==================== */
+/* EDGE POOL */
 .edge-pool {
-  padding: 16px 12px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;     /* réduit */
+  padding: 14px 12px;
 }
 
-.edge-diamonds {
-  gap: 8px;
-}
-
-.diamond {
-  width: 38px;
-  height: 38px;
-}
-
-/* ==================== MINOR ACTIONS ==================== */
+/* MINOR ACTIONS */
 .minor-actions {
-  padding: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;     /* réduit */
+  padding: 14px;
 }
 
-.minor-circles {
-  gap: 18px;
-}
-
-.circle {
-  width: 50px;
-  height: 50px;
-}
-
-/* ==================== MONITORS ==================== */
+/* CONDITION MONITORS */
 .monitors {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  margin-bottom: 25px;
-}
-
-.monitor-panel {
-  padding: 18px;
+  margin-bottom: 20px;     /* réduit */
+  display: flex;
+  flex-direction: column;
+  gap: 18px;               /* réduit entre les moniteurs */
 }
 
 .monitor-row {
