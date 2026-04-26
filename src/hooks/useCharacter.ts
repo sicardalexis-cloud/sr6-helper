@@ -9,6 +9,7 @@ interface Character {
   minorActions: { current: number; max: number };
   physical: number;
   stun: number;
+  drainStun: number;
 }
 
 export function useCharacter() {
@@ -17,9 +18,7 @@ export function useCharacter() {
     if (saved) {
       try {
         return JSON.parse(saved);
-      } catch (e) {
-        console.error("Erreur localStorage");
-      }
+      } catch (e) {}
     }
     return {
       name: "KAGE",
@@ -27,7 +26,8 @@ export function useCharacter() {
       edge: { current: 0, max: 7 },
       minorActions: { current: 1, max: 3 },
       physical: 0,
-      stun: 0
+      stun: 0,
+      drainStun: 0
     };
   });
 
@@ -37,7 +37,7 @@ export function useCharacter() {
 
   const update = (fn: (draft: Character) => void) => {
     setChar(prev => {
-      const draft = { ...prev } as Character;
+      const draft = { ...prev };
       fn(draft);
       return draft;
     });

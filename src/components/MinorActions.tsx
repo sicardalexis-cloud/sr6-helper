@@ -31,69 +31,33 @@ export default function MinorActions({ char, update }: Props) {
 
   return (
     <div className="minor-actions">
-      {/* Titre + Boutons + et - sur la même ligne */}
       <div style={{ 
         display: "flex", 
         justifyContent: "space-between", 
         alignItems: "center", 
         marginBottom: "16px" 
       }}>
-        <div style={{ 
-          color: "#67e8f9", 
-          fontWeight: "bold", 
-          fontSize: "1.1rem" 
-        }}>
+        <div style={{ color: "#67e8f9", fontWeight: "bold", fontSize: "1.1rem" }}>
           MINOR ACTIONS
         </div>
 
-        {/* Boutons + et - à droite du titre */}
         <div style={{ display: "flex", gap: "8px" }}>
           <button 
             onClick={() => changeMax(-1)}
-            style={{ 
-              width: "42px", 
-              height: "42px", 
-              background: "#334155", 
-              color: "#fff", 
-              fontSize: "1.4rem", 
-              border: "none", 
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
+            style={{ width: "42px", height: "42px", background: "#334155", color: "#fff", fontSize: "1.4rem", border: "none", borderRadius: "8px" }}
           >
             −
           </button>
           <button 
             onClick={() => changeMax(1)}
-            style={{ 
-              width: "42px", 
-              height: "42px", 
-              background: "#334155", 
-              color: "#fff", 
-              fontSize: "1.4rem", 
-              border: "none", 
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
-            }}
+            style={{ width: "42px", height: "42px", background: "#334155", color: "#fff", fontSize: "1.4rem", border: "none", borderRadius: "8px" }}
           >
             +
           </button>
         </div>
       </div>
 
-      {/* Cercles cliquables */}
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        gap: "24px", 
-        margin: "10px 0 20px 0",
-        WebkitTapHighlightColor: "transparent",
-        touchAction: "manipulation"
-      }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "24px", marginBottom: "20px" }}>
         {Array.from({ length: max }).map((_, i) => (
           <div
             key={i}
@@ -106,9 +70,7 @@ export default function MinorActions({ char, update }: Props) {
               border: i < current ? "5px solid #67e8f9" : "5px solid #475569",
               boxShadow: i < current ? "0 0 20px #22d3ee" : "none",
               transition: "all 0.2s",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation"
+              cursor: "pointer"
             }}
           />
         ))}
