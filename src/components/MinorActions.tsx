@@ -12,26 +12,77 @@ export default function MinorActions({ char, update }: Props) {
   const handleCircleClick = (index: number) => {
     update((draft: any) => {
       if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
-      
-      // Comportement identique aux losanges :
-      // Clique sur un cercle rempli → réduit jusqu'à ce point
-      // Sinon → remplit jusqu'à ce cercle
       draft.minorActions.current = draft.minorActions.current === index + 1 
         ? index 
         : index + 1;
     });
   };
 
+  const changeMax = (delta: number) => {
+    update((draft: any) => {
+      if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
+      const newMax = Math.max(1, Math.min(8, draft.minorActions.max + delta));
+      draft.minorActions.max = newMax;
+      if (draft.minorActions.current > newMax) {
+        draft.minorActions.current = newMax;
+      }
+    });
+  };
+
   return (
     <div className="minor-actions">
+      {/* Titre + Boutons + et - sur la même ligne */}
       <div style={{ 
-        color: "#67e8f9", 
-        fontWeight: "bold", 
-        fontSize: "1.1rem",
-        marginBottom: "16px",
-        textAlign: "center"
+        display: "flex", 
+        justifyContent: "space-between", 
+        alignItems: "center", 
+        marginBottom: "16px" 
       }}>
-        MINOR ACTIONS
+        <div style={{ 
+          color: "#67e8f9", 
+          fontWeight: "bold", 
+          fontSize: "1.1rem" 
+        }}>
+          MINOR ACTIONS
+        </div>
+
+        {/* Boutons + et - à droite du titre */}
+        <div style={{ display: "flex", gap: "8px" }}>
+          <button 
+            onClick={() => changeMax(-1)}
+            style={{ 
+              width: "42px", 
+              height: "42px", 
+              background: "#334155", 
+              color: "#fff", 
+              fontSize: "1.4rem", 
+              border: "none", 
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            −
+          </button>
+          <button 
+            onClick={() => changeMax(1)}
+            style={{ 
+              width: "42px", 
+              height: "42px", 
+              background: "#334155", 
+              color: "#fff", 
+              fontSize: "1.4rem", 
+              border: "none", 
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {/* Cercles cliquables */}
@@ -39,7 +90,7 @@ export default function MinorActions({ char, update }: Props) {
         display: "flex", 
         justifyContent: "center", 
         gap: "24px", 
-        margin: "20px 0",
+        margin: "10px 0 20px 0",
         WebkitTapHighlightColor: "transparent",
         touchAction: "manipulation"
       }}>
@@ -61,41 +112,6 @@ export default function MinorActions({ char, update }: Props) {
             }}
           />
         ))}
-      </div>
-
-      {/* Petits boutons pour modifier le maximum */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
-        <button 
-          onClick={() => {
-            update((draft: any) => {
-              if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
-              draft.minorActions.max = Math.max(1, Math.min(8, draft.minorActions.max - 1));
-              if (draft.minorActions.current > draft.minorActions.max) {
-                draft.minorActions.current = draft.minorActions.max;
-              }
-            });
-          }}
-          style={{ 
-            width: "42px", height: "42px", background: "#334155", color: "#fff", 
-            fontSize: "1.3rem", border: "none", borderRadius: "8px" 
-          }}
-        >
-          −
-        </button>
-        <button 
-          onClick={() => {
-            update((draft: any) => {
-              if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
-              draft.minorActions.max = Math.max(1, Math.min(8, draft.minorActions.max + 1));
-            });
-          }}
-          style={{ 
-            width: "42px", height: "42px", background: "#334155", color: "#fff", 
-            fontSize: "1.3rem", border: "none", borderRadius: "8px" 
-          }}
-        >
-          +
-        </button>
       </div>
     </div>
   );
