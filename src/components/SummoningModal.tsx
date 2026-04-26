@@ -15,8 +15,11 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
   const [drainResistancePool, setDrainResistancePool] = useState(8);
 
   const [useRetry, setUseRetry] = useState(false);
-  const [maxAttempts, setMaxAttempts] = useState(10);     // ← Modifié à 10
+  const [maxAttempts, setMaxAttempts] = useState(10);
   const [maxDrain, setMaxDrain] = useState(3);
+
+  const [invocationDate, setInvocationDate] = useState(new Date().toISOString().split('T')[0]);
+  const [solarPhase, setSolarPhase] = useState<"Jour" | "Nuit">("Jour");
 
   const [result, setResult] = useState<any>(null);
   const [rolling, setRolling] = useState(false);
@@ -71,9 +74,7 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
         totalDrain
       });
 
-      if (rollResult.netHits >= 1 || !useRetry || totalDrain >= maxDrain) {
-        break;
-      }
+      if (rollResult.netHits >= 1 || !useRetry || totalDrain >= maxDrain) break;
 
       await new Promise(r => setTimeout(r, 600));
     }
@@ -89,6 +90,9 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
       force: result.force,
       services: result.netHits,
       drain: result.totalDrain,
+      invocationDate,
+      solarPhase,
+      solarTokens: 2,                    // ← 2 tokens de phase solaire
       timestamp: new Date().toLocaleTimeString()
     });
 
@@ -127,7 +131,7 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#0f172a", width: "94%", maxWidth: "620px", borderRadius: "16px", padding: "20px", border: "2px solid #22d3ee", maxHeight: "94vh", overflow: "auto" }}>
+      <div style={{ background: "#0f172a", width: "94%", maxWidth: "640px", borderRadius: "16px", padding: "20px", border: "2px solid #22d3ee", maxHeight: "94vh", overflow: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
           <h2 style={{ color: "#67e8f9", margin: 0 }}>SUMMONING</h2>
@@ -144,6 +148,32 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
                 {el}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Date & Phase Solaire */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+          <div>
+            <div style={{ color: "#94a3b8", marginBottom: "6px" }}>Date d'invocation</div>
+            <input 
+              type="date" 
+              value={invocationDate} 
+              onChange={e => setInvocationDate(e.target.value)}
+              style={{ width: "100%", padding: "10px", background: "#1e2937", border: "1px solid #475569", borderRadius: "8px", color: "white" }}
+            />
+          </div>
+          <div>
+            <div style={{ color: "#94a3b8", marginBottom: "6px" }}>Phase Solaire</div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setSolarPhase("Jour")}
+                style={{ flex: 1, padding: "10px", background: solarPhase === "Jour" ? "#eab308" : "#1e2937", color: solarPhase === "Jour" ? "#111" : "white", borderRadius: "8px", border: "none" }}>
+                ☀️ Jour
+              </button>
+              <button onClick={() => setSolarPhase("Nuit")}
+                style={{ flex: 1, padding: "10px", background: solarPhase === "Nuit" ? "#6366f1" : "#1e2937", color: solarPhase === "Nuit" ? "white" : "#e2e8f0", borderRadius: "8px", border: "none" }}>
+                🌙 Nuit
+              </button>
+            </div>
           </div>
         </div>
 
@@ -211,10 +241,7 @@ export default function SummoningModal({ isOpen, onClose, char, update, addSpiri
             <DiceDisplay rolls={result.spiritResistanceRolls} label="🛡️ Résistance de l'Esprit (Force × 2)" color="#f87171" />
             <DiceDisplay rolls={result.drainResistanceRolls} label="🛡️ Résistance au Drain" color="#a855f7" />
 
-            <button 
-              onClick={validateSummoning}
-              style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#111", border: "none", borderRadius: "12px", fontWeight: "bold", marginTop: "20px" }}
-            >
+            <button onClick={validateSummoning} style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#111", border: "none", borderRadius: "12px", fontWeight: "bold", marginTop: "20px" }}>
               ✅ Validate Summoning
             </button>
           </div>
