@@ -21,7 +21,7 @@ export default function EdgePool({ char, update }: Props) {
       <div style={{ 
         color: "#eab308", 
         fontWeight: "bold", 
-        fontSize: "1.1rem",
+        fontSize: "1.2rem",
         marginBottom: "12px",
         textAlign: "center"
       }}>
@@ -46,8 +46,8 @@ export default function EdgePool({ char, update }: Props) {
               transform: "rotate(45deg)",
               borderRadius: "6px",
               border: "3px solid #111827",
-              boxShadow: i < current ? "0 0 20px #eab308" : "none",
-              transition: "all 0.2s"
+              transition: "all 0.2s",
+              // Glow retiré
             }}
           />
         ))}
