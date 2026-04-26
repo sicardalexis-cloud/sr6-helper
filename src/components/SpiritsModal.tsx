@@ -32,12 +32,25 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
 
   const renderConditionMonitor = (spirit: Spirit) => {
     const maxBoxes = 8 + Math.ceil(spirit.force / 2);
+
+    const handleBoxClick = (index: number) => {
+      const current = spirit.conditionDamage;
+      
+      if (index + 1 === current) {
+        // Clique sur une case pleine → la vide (et celles après)
+        updateSpirit(spirit.id, { conditionDamage: index });
+      } else {
+        // Clique sur une case vide ou avant → remplit jusqu'à cette case
+        updateSpirit(spirit.id, { conditionDamage: index + 1 });
+      }
+    };
+
     return (
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center", marginTop: "12px" }}>
         {Array.from({ length: maxBoxes }).map((_, i) => (
           <div
             key={i}
-            onClick={() => updateSpirit(spirit.id, { conditionDamage: i + 1 })}
+            onClick={() => handleBoxClick(i)}
             style={{
               width: "28px",
               height: "28px",
@@ -45,7 +58,8 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
               border: "2px solid #64748b",
               borderRadius: "4px",
               cursor: "pointer",
-              transition: "all 0.2s"
+              transition: "all 0.2s",
+              boxShadow: i < spirit.conditionDamage ? "0 0 8px #f87171" : "none"
             }}
           />
         ))}
@@ -104,13 +118,17 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
 
                 {/* Services +/- */}
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.max(0, spirit.servicesRemaining - 1) })}
-                    style={{ width: "36px", height: "36px", background: "#334155", color: "white", border: "none", borderRadius: "50%", fontSize: "1.4rem", cursor: "pointer" }}>-</button>
+                  <button 
+                    onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.max(0, spirit.servicesRemaining - 1) })}
+                    style={{ width: "36px", height: "36px", background: "#334155", color: "white", border: "none", borderRadius: "50%", fontSize: "1.4rem", cursor: "pointer" }}
+                  >−</button>
                   <span style={{ fontSize: "1.4rem", fontWeight: "bold", minWidth: "36px", textAlign: "center" }}>
                     {spirit.servicesRemaining}
                   </span>
-                  <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: spirit.servicesRemaining + 1 })}
-                    style={{ width: "36px", height: "36px", background: "#334155", color: "white", border: "none", borderRadius: "50%", fontSize: "1.4rem", cursor: "pointer" }}>+</button>
+                  <button 
+                    onClick={() => updateSpirit(spirit.id, { servicesRemaining: spirit.servicesRemaining + 1 })}
+                    style={{ width: "36px", height: "36px", background: "#334155", color: "white", border: "none", borderRadius: "50%", fontSize: "1.4rem", cursor: "pointer" }}
+                  >+</button>
                 </div>
               </div>
 
@@ -121,15 +139,39 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
               </div>
 
               {/* Bouton supprimer */}
-              <button onClick={() => removeSpirit(spirit.id)}
-                style={{ marginTop: "16px", width: "100%", padding: "10px", background: "#ef4444", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+              <button 
+                onClick={() => removeSpirit(spirit.id)}
+                style={{ 
+                  marginTop: "16px", 
+                  width: "100%", 
+                  padding: "10px", 
+                  background: "#ef4444", 
+                  color: "white", 
+                  border: "none", 
+                  borderRadius: "8px", 
+                  cursor: "pointer",
+                  fontWeight: "bold"
+                }}
+              >
                 Dismiss Spirit
               </button>
             </div>
           ))
         )}
 
-        <button onClick={onClose} style={{ width: "100%", padding: "14px", marginTop: "20px", background: "transparent", border: "2px solid #64748b", color: "#94a3b8", borderRadius: "8px", cursor: "pointer" }}>
+        <button 
+          onClick={onClose} 
+          style={{ 
+            width: "100%", 
+            padding: "14px", 
+            marginTop: "20px", 
+            background: "transparent", 
+            border: "2px solid #64748b", 
+            color: "#94a3b8", 
+            borderRadius: "8px", 
+            cursor: "pointer" 
+          }}
+        >
           Fermer
         </button>
       </div>
