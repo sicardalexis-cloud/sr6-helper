@@ -30,7 +30,7 @@ export default function ConditionMonitors({ char, update }: Props) {
   };
 
   const renderBoxes = (current: number, max: number, color: string, type?: string) => (
-    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "center" }}>
+    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "flex-start" }}>
       {Array.from({ length: max }).map((_, i) => (
         <div
           key={i}
@@ -50,35 +50,35 @@ export default function ConditionMonitors({ char, update }: Props) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       
       {/* PHYSICAL */}
-      <div>
-        <div style={{ color: "#ef4444", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ color: "#ef4444", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           PHYSICAL
         </div>
         {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
       </div>
 
       {/* STUN */}
-      <div>
-        <div style={{ color: "#eab308", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ color: "#eab308", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           STUN
         </div>
         {renderBoxes(normalStun, stunMax, "#eab308", "normalStun")}
       </div>
 
       {/* DRAIN STUN */}
-      <div>
-        <div style={{ color: "#a855f7", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ color: "#a855f7", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           DRAIN STUN
         </div>
         {renderBoxes(drainStun, stunMax, "#a855f7", "drainStun")}
       </div>
 
       {/* TOTAL STUN */}
-      <div>
-        <div style={{ color: "#facc15", fontWeight: "bold", textAlign: "center", marginBottom: "10px", fontSize: "1.1rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ color: "#facc15", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           TOTAL STUN
         </div>
         {renderBoxes(totalStun, stunMax, "#facc15")}
