@@ -25,7 +25,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const spiritType = spirit.element.toLowerCase() as SpiritType;
   const stats = SPIRIT_STATS[spiritType] || SPIRIT_STATS.fire;
 
-  // Calcul Attributs
+  // Calculate Attributes
   const attributes: Record<string, number> = {};
   Object.entries(stats.attributes).forEach(([key, formula]) => {
     let val = F;
@@ -51,7 +51,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
 
   const movement = stats.movement.replace(/F/g, F.toString());
 
-  // Calcul Attack Rating
+  // Calculate Attack Ratings
   const calculateAR = (ar: string): string => {
     let result = ar.replace(/F/g, F.toString());
     result = result.replace(/\((\d+)×2\)\+(\d+)/g, (_, base, mod) => (Number(base) * 2 + Number(mod)).toString());
@@ -81,7 +81,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#c084fc", margin: 0 }}>FICHE ESPRIT — {spirit.element.toUpperCase()}</h2>
+          <h2 style={{ color: "#c084fc", margin: 0 }}>SPIRIT SHEET — {spirit.element.toUpperCase()}</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
 
@@ -91,14 +91,14 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
         </div>
 
         <div style={{ background: "#1e2937", padding: "14px", borderRadius: "10px", marginBottom: "24px" }}>
-          <div>📅 {new Date(spirit.invocationDate).toLocaleDateString('fr-FR')} — {spirit.solarPhase}</div>
-          <div>🔵 Tokens Solaires : <strong>{spirit.solarTokens}/2</strong></div>
-          <div>🛡️ Services restants : <strong>{spirit.servicesRemaining}</strong></div>
+          <div>📅 {new Date(spirit.invocationDate).toLocaleDateString('en-US')} — {spirit.solarPhase}</div>
+          <div>🔵 Solar Tokens: <strong>{spirit.solarTokens}/2</strong></div>
+          <div>🛡️ Services Remaining: <strong>{spirit.servicesRemaining}</strong></div>
         </div>
 
-        {/* Attributs */}
+        {/* Attributes */}
         <div style={{ marginBottom: "24px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTRIBUTS</div>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTRIBUTES</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "8px" }}>
             {Object.entries(attributes).map(([name, value]) => (
               <div key={name} style={{ background: "#1e2937", padding: "10px 12px", borderRadius: "8px" }}>
@@ -109,37 +109,47 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* Statistiques de Combat */}
+        {/* Skills - NOUVELLE SECTION */}
         <div style={{ marginBottom: "24px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>STATISTIQUES DE COMBAT</div>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>SKILLS</div>
           <div style={{ background: "#1e2937", padding: "14px", borderRadius: "10px", lineHeight: "1.8" }}>
-            <div><strong>Defense Rating :</strong> <strong style={{ color: "#f87171" }}>{defenseRating}</strong></div>
-            <div><strong>Mouvement :</strong> {movement}</div>
-            <div><strong>Initiative Physique :</strong> <strong style={{ color: "#67e8f9" }}>{initPhys}</strong></div>
-            <div><strong>Initiative Astrale :</strong> <strong style={{ color: "#67e8f9" }}>{initAstral}</strong></div>
+            {stats.skills.map((skill, i) => (
+              <div key={i}>• {skill}</div>
+            ))}
           </div>
         </div>
 
-        {/* Attaques */}
+        {/* Combat Stats */}
         <div style={{ marginBottom: "24px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTAQUES</div>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>COMBAT STATISTICS</div>
+          <div style={{ background: "#1e2937", padding: "14px", borderRadius: "10px", lineHeight: "1.8" }}>
+            <div><strong>Defense Rating:</strong> <strong style={{ color: "#f87171" }}>{defenseRating}</strong></div>
+            <div><strong>Movement:</strong> {movement}</div>
+            <div><strong>Physical Initiative:</strong> <strong style={{ color: "#67e8f9" }}>{initPhys}</strong></div>
+            <div><strong>Astral Initiative:</strong> <strong style={{ color: "#67e8f9" }}>{initAstral}</strong></div>
+          </div>
+        </div>
+
+        {/* Attacks */}
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTACKS</div>
           {stats.attacks.map((attack, i) => (
             <div key={i} style={{ background: "#1e2937", padding: "12px", borderRadius: "10px", marginBottom: "10px" }}>
               <div style={{ fontWeight: "bold", color: "#f87171" }}>{attack.name}</div>
-              <div><strong>DV :</strong> {attack.dv}</div>
-              <div><strong>AR :</strong> {calculateAR(attack.attackRatings)}</div>
+              <div><strong>DV:</strong> {attack.dv}</div>
+              <div><strong>AR:</strong> {calculateAR(attack.attackRatings)}</div>
             </div>
           ))}
         </div>
 
-        {/* Pouvoirs */}
+        {/* Powers */}
         <div>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "10px" }}>POUVOIRS DE BASE</div>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "10px" }}>BASE POWERS</div>
           <div style={{ background: "#1e2937", padding: "14px", borderRadius: "10px", marginBottom: "16px" }}>
             {stats.powers.map((p, i) => <div key={i}>• {p}</div>)}
           </div>
 
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "10px" }}>POUVOIRS OPTIONNELS</div>
+          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "10px" }}>OPTIONAL POWERS</div>
           <div style={{ background: "#1e2937", padding: "14px", borderRadius: "10px" }}>
             {stats.optionalPowers.map((p, i) => <div key={i}>• {p}</div>)}
           </div>
@@ -159,7 +169,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
             fontWeight: "bold" 
           }}
         >
-          Retour
+          Close
         </button>
       </div>
     </div>
