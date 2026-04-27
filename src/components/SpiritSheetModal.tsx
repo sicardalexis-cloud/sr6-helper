@@ -1,37 +1,32 @@
 import React, { useState } from "react";
 import { SPIRIT_STATS, SpiritType, POWER_DESCRIPTIONS } from "../data/spirits";
-
-interface Spirit {
-  id: number;
-  element: string;
-  force: number;
-  servicesRemaining: number;
-  conditionDamage: number;
-  invocationDate: string;
-  solarPhase: "Day" | "Night";
-  solarTokens: number;
-}
+import { useCharacterContext } from "../contexts/CharacterContext";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  spirit: Spirit | null;
+  spirit: any;
 }
 
 export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
+  const { updateSpirit } = useCharacterContext();
+
   if (!isOpen || !spirit) return null;
 
   const F = spirit.force;
   const spiritType = spirit.element.toLowerCase() as SpiritType;
   const stats = SPIRIT_STATS[spiritType] || SPIRIT_STATS.fire;
 
-  const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(new Set());
+  const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(
+    new Set(spirit.optionalPowers || [])
+  );
   const [expandedPowers, setExpandedPowers] = useState<Set<string>>(new Set());
 
   const toggleOptionalPower = (power: string) => {
     const newSet = new Set(selectedOptionalPowers);
     newSet.has(power) ? newSet.delete(power) : newSet.add(power);
     setSelectedOptionalPowers(newSet);
+    updateSpirit(spirit.id, { optionalPowers: Array.from(newSet) });
   };
 
   const toggleDescription = (power: string) => {
@@ -40,175 +35,143 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
     setExpandedPowers(newSet);
   };
 
-  // Calculs
-  const attributes: Record<string, number> = {};
-  Object.entries(stats?.attributes || {}).forEach(([key, formula]) => {
-    let val = F;
-    if (typeof formula === "string") {
-      if (formula.includes('+')) val = F + Number(formula.split('+')[1] || 0);
-      if (formula.includes('-')) val = F - Number(formula.split('-')[1] || 0);
-    }
-    attributes[key] = Math.max(1, val);
-  });
-
-  let defenseRating = F;
-  const dr = stats?.defenseRating || "F";
-  if (dr.includes('+')) defenseRating = F + Number(dr.split('+')[1] || 0);
-  else if (dr.includes('-')) defenseRating = F - Number(dr.split('-')[1] || 0);
-
-  const initPhys = `${(F * 2) + (stats?.initiativePhysical?.baseModifier || 0)} + ${stats?.initiativePhysical?.dice || 2}D6`;
-  const initAstral = `${(F * 2) + (stats?.initiativeAstral?.baseModifier || 0)} + ${stats?.initiativeAstral?.dice || 3}D6`;
-
-  const movement = (stats?.movement || "10/15/+1").replace(/F/g, F.toString());
-
-  const calculateAR = (ar: string): string => {
-    if (!ar) return "-";
-    let result = ar.replace(/F/g, F.toString());
-    result = result.replace(/\((\d+)×2\)\+(\d+)/g, (_, b, m) => (Number(b) * 2 + Number(m)).toString());
-    result = result.replace(/\((\d+)×2\)/g, (_, b) => (Number(b) * 2).toString());
-    return result;
+  const resolve = (text: string): string => {
+    if (!text) return "—";
+    return text
+      .replace(/\{F\}/g, F.toString())
+      .replace(/\{F\+2\}/g, (F + 2).toString())
+      .replace(/\{F\*2 \+ 1\}/g, (F * 2 + 1).toString())
+      .replace(/\{F\*2\}/g, (F * 2).toString())
+      .replace(/\{F\*2-2\}/g, (F * 2 - 2).toString())
+      .replace(/\{F\*2-8\}/g, (F * 2 - 8).toString())
+      .replace(/\{F\*2-10\}/g, (F * 2 - 10).toString())
+      .replace(/\{F\*3\}/g, (F * 3).toString())
+      .replace(/\{F\/2 \+ 1\}/g, (Math.floor(F / 2) + 1).toString())
+      .replace(/\{F\/2\}/g, Math.floor(F / 2).toString());
   };
 
   return (
-    <div style={{ 
-      position: "fixed", 
-      inset: 0, 
-      background: "rgba(0,0,0,0.95)", 
-      zIndex: 1100, 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "center" 
-    }}>
-      <div style={{ 
-        background: "#0f172a", 
-        width: "94%", 
-        maxWidth: "720px", 
-        borderRadius: "16px", 
-        padding: "24px", 
-        border: "2px solid #c084fc", 
-        maxHeight: "92vh", 
-        overflow: "auto" 
-      }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#0f172a", width: "94%", maxWidth: "760px", borderRadius: "16px", padding: "24px", border: "2px solid #c084fc", maxHeight: "94vh", overflow: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#c084fc", margin: 0 }}>SPIRIT SHEET — {spirit.element.toUpperCase()}</h2>
-          <button onClick={onClose} style={{ fontSize: "2.2rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
+          <h2 style={{ color: "#c084fc", margin: 0 }}>
+            {spirit.element.toUpperCase()} — Force {F}
+          </h2>
+          <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
 
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ fontSize: "2.8rem", fontWeight: "bold", color: "#c084fc" }}>{spirit.element}</div>
-          <div style={{ color: "#67e8f9", fontSize: "1.5rem" }}>Force {F}</div>
+        {/* Header */}
+        <div style={{ background: "#1e2937", padding: "12px", borderRadius: "10px", marginBottom: "20px", display: "flex", gap: "20px", flexWrap: "wrap" }}>
+          <div>📅 {spirit.invocationDate} — {spirit.solarPhase}</div>
+          <div>🔵 Solar Tokens: <strong>{spirit.solarTokens}/2</strong></div>
+          <div>❤️ Services: <strong>{spirit.servicesRemaining}</strong></div>
         </div>
 
-        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "28px", textAlign: "center" }}>
-          📅 {new Date(spirit.invocationDate).toLocaleDateString('en-US')} — {spirit.solarPhase} | 
-          🔵 Solar Tokens: <strong>{spirit.solarTokens}/2</strong> | 
-          🛡️ Services: <strong>{spirit.servicesRemaining}</strong>
+        {/* Attacks */}
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>ATTACKS</h3>
+          {stats.attacks?.length > 0 ? (
+            stats.attacks.map((attack: any, i: number) => (
+              <div key={i} style={{ background: "#0f172a", padding: "14px", borderRadius: "8px", marginBottom: "12px" }}>
+                <strong style={{ color: "#f87171" }}>{attack.name}</strong><br/>
+                <div style={{ marginTop: "6px" }}>
+                  <span style={{ color: "#94a3b8" }}>DV: </span>
+                  <span style={{ color: "#f87171", fontWeight: "bold" }}>{resolve(attack.dv)}</span>
+                </div>
+                <div>
+                  <span style={{ color: "#94a3b8" }}>AR: </span>
+                  <span style={{ color: "#67e8f9", fontWeight: "bold" }}>{resolve(attack.ar)}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ color: "#64748b" }}>Aucune attaque spécifique.</div>
+          )}
         </div>
 
-        {/* ATTRIBUTES */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTRIBUTES</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
-            {Object.entries(attributes).map(([name, value]) => (
-              <div key={name} style={{ background: "#1e2937", padding: "14px", borderRadius: "10px", textAlign: "center" }}>
-                <div style={{ color: "#94a3b8" }}>{name}</div>
-                <div style={{ fontSize: "1.7rem", fontWeight: "bold", color: "#67e8f9" }}>{value}</div>
+        {/* Attributes + Combat + Skills (simplifiés) */}
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>ATTRIBUTES</h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px" }}>
+            {Object.keys(stats.attributes || {}).map(key => (
+              <div key={key} style={{ background: "#0f172a", padding: "12px", borderRadius: "8px", textAlign: "center" }}>
+                <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>{key}</div>
+                <strong style={{ fontSize: "1.6rem", color: "#67e8f9" }}>{F}</strong>
               </div>
             ))}
           </div>
         </div>
 
-        {/* SKILLS */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>SKILLS</div>
-          <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
-            {stats?.skills?.length ? stats.skills.map((s, i) => <div key={i}>• {s}</div>) : <div>No skills listed.</div>}
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>COMBAT STATISTICS</h3>
+          <div style={{ lineHeight: "1.8rem" }}>
+            <strong>Defense Rating:</strong> {F + 2}<br/>
+            <strong>Movement:</strong> {stats.movement}<br/>
+            <strong>Physical Initiative:</strong> {stats.initiativePhysical}<br/>
+            <strong>Astral Initiative:</strong> {stats.initiativeAstral}
           </div>
         </div>
 
-        {/* COMBAT STATISTICS */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>COMBAT STATISTICS</div>
-          <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
-            <div><strong>Defense Rating:</strong> <strong style={{ color: "#f87171" }}>{defenseRating}</strong></div>
-            <div><strong>Movement:</strong> {movement}</div>
-            <div><strong>Physical Initiative:</strong> <strong style={{ color: "#67e8f9" }}>{initPhys}</strong></div>
-            <div><strong>Astral Initiative:</strong> <strong style={{ color: "#67e8f9" }}>{initAstral}</strong></div>
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>SKILLS</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            {stats.skills?.map((skill: string, i: number) => (
+              <div key={i} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "6px", fontSize: "0.95rem" }}>
+                {skill}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* ATTACKS */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>ATTACKS</div>
-          {stats?.attacks?.length ? stats.attacks.map((a, i) => (
-            <div key={i} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "10px" }}>
-              <strong style={{ color: "#f87171" }}>{a.name}</strong> — DV: {a.dv} | AR: {calculateAR(a.attackRatings)}
-            </div>
-          )) : <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", color: "#94a3b8" }}>No attacks defined.</div>}
-        </div>
-
-        {/* BASE POWERS */}
-        <div style={{ marginBottom: "28px" }}>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>BASE POWERS</div>
-          <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
-            {stats?.powers?.map((p, i) => (
-              <div key={i} style={{ marginBottom: "12px", cursor: "pointer" }} onClick={() => toggleDescription(p)}>
-                <div style={{ display: "flex", alignItems: "center", color: "#67e8f9" }}>
-                  <span style={{ marginRight: "8px" }}>▶</span>
-                  <strong>{p}</strong>
+        {/* === Amélioration des pouvoirs === */}
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>BASE POWERS</h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {stats.powers?.map((p: string, i: number) => (
+              <div key={i} style={{ padding: "10px", background: "#0f172a", borderRadius: "8px" }}>
+                <div 
+                  onClick={() => toggleDescription(p)}
+                  style={{ cursor: "pointer", color: "#67e8f9", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  ▶ {p}
                 </div>
                 {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "28px" }}>
+                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "24px", lineHeight: "1.5" }}>
                     {POWER_DESCRIPTIONS[p]}
                   </div>
                 )}
               </div>
-            )) || <div>No base powers.</div>}
+            ))}
           </div>
         </div>
 
-        {/* OPTIONAL POWERS avec cases à cocher */}
-        <div>
-          <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>OPTIONAL POWERS</div>
-          <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
-            {stats?.optionalPowers?.map((p, i) => (
-              <div key={i} style={{ marginBottom: "12px" }}>
-                <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedOptionalPowers.has(p)}
-                    onChange={() => toggleOptionalPower(p)}
-                    style={{ marginRight: "12px", accentColor: "#67e8f9", transform: "scale(1.3)" }}
-                  />
-                  <span style={{ color: "#67e8f9", flex: 1 }} onClick={() => toggleDescription(p)}>
-                    {p}
-                  </span>
-                </label>
-                {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "6px", paddingLeft: "36px", lineHeight: "1.45" }}>
-                    {POWER_DESCRIPTIONS[p]}
-                  </div>
-                )}
-              </div>
-            )) || <div>No optional powers available.</div>}
-          </div>
+        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
+          <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>OPTIONAL POWERS</h3>
+          {stats.optionalPowers?.map((p: string, i: number) => (
+            <div key={i} style={{ marginBottom: "12px", padding: "12px", background: "#0f172a", borderRadius: "8px" }}>
+              <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={selectedOptionalPowers.has(p)}
+                  onChange={() => toggleOptionalPower(p)}
+                  style={{ marginRight: "12px", accentColor: "#67e8f9", transform: "scale(1.3)" }}
+                />
+                <span style={{ color: "#67e8f9", flex: 1, fontWeight: "500" }} onClick={() => toggleDescription(p)}>
+                  {p}
+                </span>
+              </label>
+              {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
+                <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "36px", lineHeight: "1.5" }}>
+                  {POWER_DESCRIPTIONS[p]}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
-        <button 
-          onClick={onClose} 
-          style={{ 
-            width: "100%", 
-            padding: "16px", 
-            marginTop: "30px", 
-            background: "#334155", 
-            color: "white", 
-            border: "none", 
-            borderRadius: "10px", 
-            fontWeight: "bold" 
-          }}
-        >
-          Close
+        <button onClick={onClose} style={{ width: "100%", padding: "16px", background: "#334155", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginTop: "24px" }}>
+          Close Sheet
         </button>
       </div>
     </div>

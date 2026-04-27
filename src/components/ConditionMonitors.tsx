@@ -1,11 +1,9 @@
 import React from "react";
+import { useCharacterContext } from "../contexts/CharacterContext";
 
-interface Props {
-  char: any;
-  update: (fn: (draft: any) => void) => void;
-}
+export default function ConditionMonitors() {
+  const { char, update } = useCharacterContext();
 
-export default function ConditionMonitors({ char, update }: Props) {
   const bod = char.attributes?.BOD ?? 3;
   const wil = char.attributes?.WIL ?? 3;
 
@@ -33,20 +31,19 @@ export default function ConditionMonitors({ char, update }: Props) {
     });
   };
 
-  const renderBoxes = (current: number, max: number, color: string, type?: string) => (
+  const renderBoxes = (current: number, max: number, color: string, type?: "physical" | "normalStun" | "drainStun") => (
     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "flex-start" }}>
       {Array.from({ length: max }).map((_, i) => (
         <div
           key={i}
-          onClick={() => type && handleClick(type as any, i)}
+          onClick={() => type && handleClick(type, i)}
           style={{
-            width: "30px",
-            height: "30px",
-            background: i < current ? color : "#1e2937",
+            width: "32px",
+            height: "32px",
             border: "2px solid #475569",
-            borderRadius: "4px",
-            cursor: type ? "pointer" : "default",
-            transition: "all 0.2s"
+            borderRadius: "6px",
+            background: i < current ? color : "#1e2937",
+            cursor: "pointer"
           }}
         />
       ))}
@@ -54,27 +51,25 @@ export default function ConditionMonitors({ char, update }: Props) {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-      
-      {/* MALUS GLOBAL */}
-      <div style={{ textAlign: "center", marginBottom: "12px" }}>
-        <div style={{ color: "#facc15", fontWeight: "bold", fontSize: "1.25rem" }}>
-          MALUS DE DÉS : <span style={{ color: totalPenalty > 0 ? "#ef4444" : "#4ade80" }}>
-            {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
-          </span>
-        </div>
+    <div style={{ padding: "16px", background: "#1e2937", borderRadius: "12px", marginBottom: "16px" }}>
+      <h3 style={{ color: "#c084fc", marginBottom: "12px" }}>CONDITION MONITORS</h3>
+
+      <div style={{ marginBottom: "16px", fontWeight: "bold", fontSize: "1.25rem" }}>
+        MALUS DE DÉS : <span style={{ color: totalPenalty > 0 ? "#ef4444" : "#4ade80" }}>
+          {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
+        </span>
       </div>
 
       {/* PHYSICAL */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
         <div style={{ color: "#ef4444", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           PHYSICAL
         </div>
         {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
       </div>
 
-      {/* STUN */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      {/* NORMAL STUN */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
         <div style={{ color: "#eab308", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           STUN
         </div>
@@ -82,7 +77,7 @@ export default function ConditionMonitors({ char, update }: Props) {
       </div>
 
       {/* DRAIN STUN */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
         <div style={{ color: "#a855f7", fontWeight: "bold", width: "110px", textAlign: "right" }}>
           DRAIN STUN
         </div>
@@ -96,7 +91,6 @@ export default function ConditionMonitors({ char, update }: Props) {
         </div>
         {renderBoxes(totalStun, stunMax, "#facc15")}
       </div>
-
     </div>
   );
 }

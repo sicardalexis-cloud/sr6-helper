@@ -1,65 +1,44 @@
-import React, { useState } from "react";
+import React from "react";
+import { useCharacterContext } from "../contexts/CharacterContext";   // ← Chemin corrigé (contexts au pluriel)
 
-const attrs = ["BOD", "AGI", "REA", "STR", "WIL", "LOG", "INT", "CHA", "MAGIC", "ESSENCE"];
+export default function AttributesPanel() {
+  const { char, update } = useCharacterContext();
 
-interface Props {
-  char: any;
-  update: (fn: (draft: any) => void) => void;
-}
-
-export default function AttributesPanel({ char, update }: Props) {
-  const attributes = char.attributes || {};
-  const [selectedAttr, setSelectedAttr] = useState<string | null>(null);
-
-  const handleChange = (key: string, delta: number) => {
+  const handleAttributeChange = (attr: string, value: number) => {
     update((draft: any) => {
-      if (!draft.attributes) draft.attributes = {};
-      const current = draft.attributes[key] ?? (key === "MAGIC" ? 0 : 3);
-      draft.attributes[key] = Math.max(0, Math.min(10, current + delta));
+      draft.attributes[attr] = value;
     });
   };
 
-  const toggleButtons = (key: string) => {
-    setSelectedAttr(selectedAttr === key ? null : key);
-  };
-
   return (
-    <div className="attributes-grid">
-      {attrs.map((label) => {
-        const value = attributes[label] ?? (label === "MAGIC" ? 0 : 3);
-        const isSelected = selectedAttr === label;
-
-        return (
-          <div key={label} className="attribute-box">
-            <div className="attr-label">{label}</div>
+    <div style={{ padding: "16px", background: "#1e2937", borderRadius: "12px", marginBottom: "16px" }}>
+      <h3 style={{ color: "#c084fc", marginBottom: "12px" }}>ATTRIBUTES</h3>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+        {Object.entries(char.attributes || {}).map(([key, value]) => (
+          <div key={key} style={{ textAlign: "center" }}>
+            <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginBottom: "4px" }}>{key}</div>
             
-            <div 
-              className="attr-value" 
-              onClick={() => toggleButtons(label)}
-              style={{ cursor: "pointer", userSelect: "none" }}
-            >
-              {value}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <button 
+                onClick={() => handleAttributeChange(key, Math.max(1, Number(value) - 1))}
+                style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#334155", color: "#fff" }}
+              >
+                –
+              </button>
+              
+              <strong style={{ fontSize: "1.5rem", minWidth: "40px" }}>{value}</strong>
+              
+              <button 
+                onClick={() => handleAttributeChange(key, Number(value) + 1)}
+                style={{ width: "28px", height: "28px", borderRadius: "6px", background: "#334155", color: "#fff" }}
+              >
+                +
+              </button>
             </div>
-
-            {isSelected && (
-              <div className="attr-controls" style={{ marginTop: "6px" }}>
-                <button 
-                  className="attr-btn minus"
-                  onClick={() => handleChange(label, -1)}
-                >
-                  -
-                </button>
-                <button 
-                  className="attr-btn plus"
-                  onClick={() => handleChange(label, 1)}
-                >
-                  +
-                </button>
-              </div>
-            )}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }

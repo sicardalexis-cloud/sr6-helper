@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { SPIRIT_TYPES } from "../data/spirits";
+import { useCharacterContext } from "../contexts/CharacterContext";
 
 interface SummoningResult {
   netHits: number;
   drainFinal: number;
-  drainTotal: number;           // Drain cumulé pendant cette série d'essais
+  drainTotal: number;
   attempts: number;
   invocationRolls: number[];
   spiritRolls: number[];
@@ -14,40 +15,11 @@ interface SummoningResult {
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  addSpirit: (spirit: any) => void;
-  update: (fn: (draft: any) => void) => void;
 }
 
-// Dice Display Component
-const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
-  const hits = dice.filter(d => d >= 5).length;
-  return (
-    <div style={{ marginBottom: "16px", background: "#1e2937", padding: "12px", borderRadius: "10px" }}>
-      <div style={{ color: "#94a3b8", marginBottom: "8px", fontWeight: "500" }}>{label}</div>
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
-        {dice.map((d, i) => (
-          <div key={i} style={{
-            width: "36px",
-            height: "36px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: d >= 5 ? "#22c55e" : "#475569",
-            color: d >= 5 ? "#000" : "#fff",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            border: "2px solid #334155"
-          }}>
-            {d}
-          </div>
-        ))}
-      </div>
-      <small style={{ color: "#67e8f9" }}>{hits} hits</small>
-    </div>
-  );
-};
+export default function SummoningModal({ isOpen, onClose }: Props) {
+  const { addSpirit, applyDrain } = useCharacterContext();
 
-export default function SummoningModal({ isOpen, onClose, addSpirit, update }: Props) {
   const [selectedSpiritType, setSelectedSpiritType] = useState("fire");
   const [force, setForce] = useState(4);
   const [conjuringPool, setConjuringPool] = useState(8);
@@ -59,7 +31,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
   const [result, setResult] = useState<SummoningResult | null>(null);
   const [isRolling, setIsRolling] = useState(false);
-  const [totalDrainAccumulated, setTotalDrainAccumulated] = useState(0);
 
   const [invocationDate, setInvocationDate] = useState(new Date().toISOString().split('T')[0]);
   const [solarPhase, setSolarPhase] = useState<"Day" | "Night">("Day");
@@ -76,7 +47,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     const spiritHits = countHits(spiritRolls);
     const drainHits = countHits(drainRolls);
 
-    // Correction : drain = spiritHits - drainHits (selon tes règles)
     const drainFinalThisAttempt = Math.max(0, spiritHits - drainHits);
 
     return {
@@ -91,9 +61,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   };
 
   const handleSummon = async () => {
-    // RESET DU DRAIN À CHAQUE NOUVEAU LANCER
     setResult(null);
-    setTotalDrainAccumulated(0);
     setIsRolling(true);
 
     let attempts = 0;
@@ -102,17 +70,13 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
     while (attempts < maxAttempts) {
       attempts++;
-      
       const roll = performSummon(accumulated);
       accumulated = roll.drainTotal;
       finalResult = { ...roll, attempts };
 
       setResult(finalResult);
-      setTotalDrainAccumulated(accumulated);
 
-      if (roll.netHits >= 1 || !useRetry || accumulated >= maxDrain) {
-        break;
-      }
+      if (roll.netHits >= 1 || !useRetry || accumulated >= maxDrain) break;
 
       await new Promise(r => setTimeout(r, 600));
     }
@@ -123,29 +87,24 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const validateSummoning = () => {
     if (!result) return;
 
-    // Appliquer le drain cumulé
     if (result.drainTotal > 0) {
-      update((draft: any) => {
-        draft.stun = (draft.stun || 0) + result.drainTotal;
-      });
+      applyDrain(result.drainTotal);
     }
 
-    // Ajouter l'esprit seulement en cas de succès
     if (result.netHits >= 1) {
       addSpirit({
-        element: selectedSpiritType,
-        force: force,
+        element: selectedSpiritType.charAt(0).toUpperCase() + selectedSpiritType.slice(1),
+        force,
         servicesRemaining: result.netHits,
         conditionDamage: 0,
-        invocationDate: invocationDate,
-        solarPhase: solarPhase,
+        invocationDate,
+        solarPhase,
         solarTokens: 2,
       });
     }
 
-    // Reset après validation
     setResult(null);
-    setTotalDrainAccumulated(0);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -212,12 +171,10 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
           {useRetry && (
             <div style={{ padding: "14px", background: "#1e2937", borderRadius: "10px", marginBottom: "16px" }}>
-              <div>Max Attempts: {maxAttempts} 
-                <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
-              </div>
-              <div>Max Cumulative Drain: {maxDrain} 
-                <input type="range" min="1" max="15" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} />
-              </div>
+              <div>Max Attempts: {maxAttempts}</div>
+              <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
+              <div>Max Cumulative Drain: {maxDrain}</div>
+              <input type="range" min="1" max="15" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} />
             </div>
           )}
 
@@ -236,7 +193,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Buttons */}
         <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
           <button 
             onClick={handleSummon} 
@@ -284,4 +241,33 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       </div>
     </div>
   );
-}
+};
+
+// DiceDisplay Component
+const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
+  const hits = dice.filter(d => d >= 5).length;
+  return (
+    <div style={{ marginBottom: "16px", background: "#1e2937", padding: "12px", borderRadius: "10px" }}>
+      <div style={{ color: "#94a3b8", marginBottom: "8px", fontWeight: "500" }}>{label}</div>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
+        {dice.map((d, i) => (
+          <div key={i} style={{
+            width: "36px",
+            height: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: d >= 5 ? "#22c55e" : "#475569",
+            color: d >= 5 ? "#000" : "#fff",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            border: "2px solid #334155"
+          }}>
+            {d}
+          </div>
+        ))}
+      </div>
+      <small style={{ color: "#67e8f9" }}>{hits} hits</small>
+    </div>
+  );
+};
