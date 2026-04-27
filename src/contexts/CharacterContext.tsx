@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useCharacter } from '../hooks/useCharacter';
+import { useCharacter, SummonedSpirit } from '../hooks/useCharacter';  // ← important
 
 interface CharacterContextType {
   char: any;
@@ -31,3 +31,6 @@ export function useCharacterContext() {
   }
   return context;
 }
+
+// Export du type pour que SpiritsModal puisse l'utiliser
+export type { SummonedSpirit };
