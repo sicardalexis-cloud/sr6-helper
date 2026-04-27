@@ -34,7 +34,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
     attributes[key] = Math.max(1, val);
   });
 
-  // Defense Rating (F ± X)
+  // Defense Rating
   let defenseRating = F;
   if (stats.defenseRating.includes('+')) {
     defenseRating = F + Number(stats.defenseRating.split('+')[1]);
@@ -51,7 +51,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
 
   const movement = stats.movement.replace(/F/g, F.toString());
 
-  // Calcul Attack Ratings
+  // Calcul Attack Rating
   const calculateAR = (ar: string): string => {
     let result = ar.replace(/F/g, F.toString());
     result = result.replace(/\((\d+)×2\)\+(\d+)/g, (_, base, mod) => (Number(base) * 2 + Number(mod)).toString());
@@ -164,11 +164,4 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       </div>
     </div>
   );
-
-  function calculateAR(ar: string): string {
-    let result = ar.replace(/F/g, F.toString());
-    result = result.replace(/\((\d+)×2\)\+(\d+)/g, (_, base, mod) => (Number(base) * 2 + Number(mod)).toString());
-    result = result.replace(/\((\d+)×2\)/g, (_, base) => (Number(base) * 2).toString());
-    return result;
-  }
 }
