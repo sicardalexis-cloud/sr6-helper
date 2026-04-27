@@ -1,254 +1,266 @@
 import React, { useState } from "react";
+import { SPIRIT_TYPES } from "../data/spirits";
+
+interface SummoningResult {
+  netHits: number;
+  drainFinal: number;
+  attempts: number;
+  invocationRolls: number[];
+  spiritRolls: number[];
+  drainRolls: number[];
+}
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  char: any;
-  update: (fn: (draft: any) => void) => void;
   addSpirit: (spirit: any) => void;
+  update: (fn: (draft: any) => void) => void;
 }
 
-export default function SummoningModal({ isOpen, onClose, char, update, addSpirit }: Props) {
-  const [element, setElement] = useState("Fire");
+// Dice Display Component
+const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
+  const hits = dice.filter(d => d >= 5).length;
+  return (
+    <div style={{ marginBottom: "16px", background: "#1e2937", padding: "12px", borderRadius: "10px" }}>
+      <div style={{ color: "#94a3b8", marginBottom: "8px", fontWeight: "500" }}>{label}</div>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "6px" }}>
+        {dice.map((d, i) => (
+          <div key={i} style={{
+            width: "36px",
+            height: "36px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: d >= 5 ? "#22c55e" : "#475569",
+            color: d >= 5 ? "#000" : "#fff",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            border: "2px solid #334155"
+          }}>
+            {d}
+          </div>
+        ))}
+      </div>
+      <small style={{ color: "#67e8f9" }}>{hits} hits</small>
+    </div>
+  );
+};
+
+export default function SummoningModal({ isOpen, onClose, addSpirit, update }: Props) {
+  const [selectedSpiritType, setSelectedSpiritType] = useState("fire");
   const [force, setForce] = useState(4);
   const [conjuringPool, setConjuringPool] = useState(8);
-  const [drainResistancePool, setDrainResistancePool] = useState(8);
+  const [drainResistancePool, setDrainResistancePool] = useState(6);
 
-  const [useRetry, setUseRetry] = useState(false);
-  const [maxAttempts, setMaxAttempts] = useState(10);
-  const [maxDrain, setMaxDrain] = useState(3);
+  const [useRetry, setUseRetry] = useState(true);
+  const [maxAttempts, setMaxAttempts] = useState(5);
+  const [maxDrain, setMaxDrain] = useState(6);
+
+  const [result, setResult] = useState<SummoningResult | null>(null);
+  const [isRolling, setIsRolling] = useState(false);
 
   const [invocationDate, setInvocationDate] = useState(new Date().toISOString().split('T')[0]);
-  const [solarPhase, setSolarPhase] = useState<"Jour" | "Nuit">("Jour");
+  const [solarPhase, setSolarPhase] = useState<"Day" | "Night">("Day");
 
-  const [result, setResult] = useState<any>(null);
-  const [rolling, setRolling] = useState(false);
+  const rollDice = (pool: number) => Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
+  const countHits = (dice: number[]) => dice.filter(d => d >= 5).length;
 
-  if (!isOpen) return null;
-
-  const elements = ["Air", "Water", "Fire", "Earth", "Man", "Beasts", "Plant", "Guardian", "Guidance", "Task"];
-
-  const rollDice = (count: number) => Array.from({ length: count }, () => Math.floor(Math.random() * 6) + 1);
-
-  const performSummon = (attempt: number) => {
+  const performSummon = () => {
     const invocationRolls = rollDice(conjuringPool);
-    const spiritResistanceRolls = rollDice(force * 2);
-    const drainResistanceRolls = rollDice(drainResistancePool);
+    const spiritRolls = rollDice(force * 2);
+    const drainRolls = rollDice(drainResistancePool);
 
-    const invocationHits = invocationRolls.filter(d => d >= 5).length;
-    const spiritHits = spiritResistanceRolls.filter(d => d >= 5).length;
-    const drainHits = drainResistanceRolls.filter(d => d >= 5).length;
-
-    const netHits = Math.max(0, invocationHits - spiritHits);
-    const drainFinal = Math.max(0, spiritHits - drainHits);
+    const invHits = countHits(invocationRolls);
+    const spiritHits = countHits(spiritRolls);
+    const drainHits = countHits(drainRolls);
 
     return {
-      element, force,
-      invocationHits, invocationRolls,
-      spiritHits, spiritResistanceRolls,
-      drainHits, drainResistanceRolls,
-      netHits, drainFinal,
-      attempt,
-      status: netHits >= 1 ? "Succès" : "Échec"
+      netHits: Math.max(0, invHits - spiritHits),
+      drainFinal: Math.max(0, spiritHits - drainHits),
+      attempts: 1,
+      invocationRolls,
+      spiritRolls,
+      drainRolls
     };
   };
 
   const handleSummon = async () => {
-    setRolling(true);
+    setIsRolling(true);
     setResult(null);
 
+    let attempts = 0;
     let totalDrain = 0;
-    let finalResult: any = null;
-    let attempt = 1;
-    const maxTries = useRetry ? maxAttempts : 1;
+    let finalResult: SummoningResult | null = null;
 
-    for (let i = 1; i <= maxTries; i++) {
-      attempt = i;
-      const rollResult = performSummon(attempt);
-      totalDrain += rollResult.drainFinal;
-      finalResult = rollResult;
+    while (attempts < maxAttempts) {
+      attempts++;
+      const roll = performSummon();
+      totalDrain += roll.drainFinal;
+      finalResult = { ...roll, attempts };
+      setResult(finalResult);
 
-      setResult({
-        ...rollResult,
-        attempts: attempt,
-        totalDrain
-      });
-
-      if (rollResult.netHits >= 1 || !useRetry || totalDrain >= maxDrain) break;
-
+      if (roll.netHits >= 1 || !useRetry || totalDrain >= maxDrain) break;
       await new Promise(r => setTimeout(r, 600));
     }
 
-    setRolling(false);
+    setIsRolling(false);
   };
 
   const validateSummoning = () => {
     if (!result) return;
 
-    addSpirit({
-      element: result.element,
-      force: result.force,
-      services: result.netHits,
-      drain: result.totalDrain,
-      invocationDate,
-      solarPhase,
-      solarTokens: 2,                    // ← 2 tokens de phase solaire
-      timestamp: new Date().toLocaleTimeString()
-    });
+    // Appliquer le drain même en cas d'échec
+    if (result.drainFinal > 0) {
+      update((draft: any) => {
+        draft.stun = (draft.stun || 0) + result.drainFinal;
+      });
+    }
 
-    update((draft: any) => {
-      draft.drainStun = (draft.drainStun || 0) + result.totalDrain;
-    });
+    // Ajouter l'esprit seulement si succès
+    if (result.netHits >= 1) {
+      addSpirit({
+        element: selectedSpiritType,
+        force: force,
+        servicesRemaining: result.netHits,
+        conditionDamage: 0,
+        invocationDate: invocationDate,
+        solarPhase: solarPhase,
+        solarTokens: 2,
+      });
+    }
 
+    // Effacer les résultats après confirmation
     setResult(null);
-    onClose();
   };
 
-  const DiceDisplay = ({ rolls, label, color }: { rolls: number[], label: string, color: string }) => (
-    <div style={{ marginBottom: "18px" }}>
-      <div style={{ color: "#94a3b8", marginBottom: "8px", fontWeight: "bold" }}>{label}</div>
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-        {rolls.map((die, i) => (
-          <div key={i} style={{
-            width: "34px", height: "34px",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: die >= 5 ? color : "#1e2937",
-            border: "2px solid #475569",
-            borderRadius: "6px",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-            color: die >= 5 ? "#111" : "#e2e8f0"
-          }}>
-            {die}
-          </div>
-        ))}
-      </div>
-      <div style={{ textAlign: "right", marginTop: "4px", color: "#94a3b8" }}>
-        Hits : <strong>{rolls.filter(d => d >= 5).length}</strong>
-      </div>
-    </div>
-  );
+  if (!isOpen) return null;
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#0f172a", width: "94%", maxWidth: "640px", borderRadius: "16px", padding: "20px", border: "2px solid #22d3ee", maxHeight: "94vh", overflow: "auto" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#0f172a", width: "94%", maxWidth: "680px", borderRadius: "16px", padding: "24px", border: "2px solid #c084fc", maxHeight: "92vh", overflow: "auto" }}>
         
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h2 style={{ color: "#67e8f9", margin: 0 }}>SUMMONING</h2>
-          <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
-        </div>
+        <h2 style={{ color: "#c084fc", textAlign: "center", marginBottom: "24px" }}>🎯 SPIRIT SUMMONING</h2>
 
         {/* Spirit Type */}
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ color: "#94a3b8", marginBottom: "8px" }}>Spirit Type</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-            {elements.map(el => (
-              <button key={el} onClick={() => setElement(el)}
-                style={{ padding: "10px 16px", background: element === el ? "#7c3aed" : "#1e2937", color: element === el ? "white" : "#e2e8f0", borderRadius: "8px", border: "none" }}>
-                {el}
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ marginBottom: "10px", color: "#94a3b8", fontWeight: "bold" }}>Spirit Type</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(78px, 1fr))", gap: "12px" }}>
+            {SPIRIT_TYPES.map(s => (
+              <button
+                key={s.type}
+                onClick={() => setSelectedSpiritType(s.type)}
+                style={{
+                  padding: "14px 8px",
+                  background: selectedSpiritType === s.type ? s.color : "#1e2937",
+                  color: selectedSpiritType === s.type ? "#000" : "#e2e8f0",
+                  border: selectedSpiritType === s.type ? "3px solid #fff" : "2px solid transparent",
+                  borderRadius: "12px",
+                  fontSize: "1.8rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                  minHeight: "94px",
+                  transition: "all 0.2s",
+                  cursor: "pointer"
+                }}
+              >
+                <span style={{ fontSize: "2.4rem" }}>{s.emoji}</span>
+                <span style={{ fontSize: "0.78rem", fontWeight: "500" }}>{s.label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Date & Phase Solaire */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
-          <div>
-            <div style={{ color: "#94a3b8", marginBottom: "6px" }}>Date d'invocation</div>
-            <input 
-              type="date" 
-              value={invocationDate} 
-              onChange={e => setInvocationDate(e.target.value)}
-              style={{ width: "100%", padding: "10px", background: "#1e2937", border: "1px solid #475569", borderRadius: "8px", color: "white" }}
-            />
-          </div>
-          <div>
-            <div style={{ color: "#94a3b8", marginBottom: "6px" }}>Phase Solaire</div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={() => setSolarPhase("Jour")}
-                style={{ flex: 1, padding: "10px", background: solarPhase === "Jour" ? "#eab308" : "#1e2937", color: solarPhase === "Jour" ? "#111" : "white", borderRadius: "8px", border: "none" }}>
-                ☀️ Jour
-              </button>
-              <button onClick={() => setSolarPhase("Nuit")}
-                style={{ flex: 1, padding: "10px", background: solarPhase === "Nuit" ? "#6366f1" : "#1e2937", color: solarPhase === "Nuit" ? "white" : "#e2e8f0", borderRadius: "8px", border: "none" }}>
-                🌙 Nuit
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Sliders */}
-        <div style={{ marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-            <span>Conjuring + Magic</span>
-            <span style={{ color: "#4ade80", fontWeight: "bold" }}>{conjuringPool}</span>
+        <div style={{ display: "grid", gap: "18px", marginBottom: "24px" }}>
+          <div>
+            <label>Force: <strong>{force}</strong></label>
+            <input type="range" min="1" max="8" value={force} onChange={e => setForce(Number(e.target.value))} style={{ width: "100%" }} />
           </div>
-          <input type="range" min="0" max="16" value={conjuringPool} onChange={e => setConjuringPool(Number(e.target.value))} style={{ width: "100%" }} />
+          <div>
+            <label>Conjuring Pool: <strong>{conjuringPool}</strong></label>
+            <input type="range" min="4" max="20" value={conjuringPool} onChange={e => setConjuringPool(Number(e.target.value))} style={{ width: "100%" }} />
+          </div>
+          <div>
+            <label>Drain Resistance Pool: <strong>{drainResistancePool}</strong></label>
+            <input type="range" min="4" max="20" value={drainResistancePool} onChange={e => setDrainResistancePool(Number(e.target.value))} style={{ width: "100%" }} />
+          </div>
         </div>
 
-        <div style={{ marginBottom: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-            <span>Spirit Force</span>
-            <span style={{ color: "#eab308", fontWeight: "bold" }}>{force}</span>
-          </div>
-          <input type="range" min="1" max="8" value={force} onChange={e => setForce(Number(e.target.value))} style={{ width: "100%" }} />
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-            <span>Drain Resistance</span>
-            <span style={{ color: "#a855f7", fontWeight: "bold" }}>{drainResistancePool}</span>
-          </div>
-          <input type="range" min="1" max="16" value={drainResistancePool} onChange={e => setDrainResistancePool(Number(e.target.value))} style={{ width: "100%" }} />
-        </div>
-
-        {/* Retry Options */}
-        <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+        {/* Retry + Date & Phase */}
+        <div style={{ marginBottom: "24px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <input type="checkbox" checked={useRetry} onChange={e => setUseRetry(e.target.checked)} />
-            <span>Activer Auto-Retry</span>
+            Enable Multiple Attempts
           </label>
 
           {useRetry && (
-            <>
-              <div style={{ marginTop: "12px" }}>Max essais : <strong>{maxAttempts}</strong></div>
-              <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
-              <div style={{ marginTop: "12px" }}>Drain max accepté : <strong>{maxDrain}</strong></div>
-              <input type="range" min="1" max="6" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} />
-            </>
+            <div style={{ padding: "14px", background: "#1e2937", borderRadius: "10px", marginBottom: "16px" }}>
+              <div>Max Attempts: {maxAttempts} <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} /></div>
+              <div>Max Drain: {maxDrain} <input type="range" min="1" max="12" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} /></div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ flex: 1 }}>
+              <label>Date</label>
+              <input type="date" value={invocationDate} onChange={e => setInvocationDate(e.target.value)} style={{ width: "100%", padding: "10px", background: "#1e2937", color: "white", borderRadius: "8px" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>Solar Phase</label>
+              <select value={solarPhase} onChange={e => setSolarPhase(e.target.value as "Day" | "Night")} style={{ width: "100%", padding: "10px", background: "#1e2937", color: "white", borderRadius: "8px" }}>
+                <option value="Day">Day</option>
+                <option value="Night">Night</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+          <button 
+            onClick={handleSummon} 
+            disabled={isRolling} 
+            style={{ flex: 1, padding: "16px", background: "#22d3ee", color: "#000", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "1.1rem" }}
+          >
+            {isRolling ? "Summoning..." : "Roll Summoning"}
+          </button>
+
+          {result && (
+            <button 
+              onClick={validateSummoning} 
+              style={{ flex: 1, padding: "16px", background: "#22c55e", color: "#000", border: "none", borderRadius: "10px", fontWeight: "bold", fontSize: "1.1rem" }}
+            >
+              Confirm Summoning ({result.netHits} Services)
+            </button>
           )}
         </div>
 
-        <button 
-          onClick={handleSummon}
-          disabled={rolling}
-          style={{ width: "100%", padding: "16px", fontSize: "1.2rem", fontWeight: "bold", background: "linear-gradient(90deg, #7c3aed, #ec4899)", border: "none", borderRadius: "12px", color: "white", marginBottom: "20px" }}
-        >
-          {rolling ? `Invocation en cours...` : `🔥 Summon ${element} Spirit`}
-        </button>
-
+        {/* Results Area */}
         {result && (
-          <div style={{ background: "#1e2937", padding: "20px", borderRadius: "12px" }}>
-            <h3 style={{ color: result.netHits >= 1 ? "#4ade80" : "#f87171", textAlign: "center" }}>
-              {result.status} après {result.attempts} tentative(s)
+          <div style={{ marginTop: "24px", padding: "20px", background: "#1e2937", borderRadius: "12px" }}>
+            <h3 style={{ color: "#67e8f9", textAlign: "center", marginBottom: "16px" }}>
+              {result.attempts} Total Attempt{result.attempts > 1 ? 's' : ''}
             </h3>
+            
+            <DiceDisplay dice={result.invocationRolls} label="🎲 Invocation Roll" />
+            <DiceDisplay dice={result.spiritRolls} label="🛡️ Spirit Resistance" />
+            <DiceDisplay dice={result.drainRolls} label="🛡️ Drain Resistance" />
 
-            <div style={{ textAlign: "center", margin: "16px 0", fontSize: "1.4rem" }}>
-              Net Hits : <strong>{result.netHits}</strong> | Drain total : <strong style={{ color: "#f87171" }}>{result.totalDrain}</strong>
+            <div style={{ marginTop: "20px", padding: "16px", background: "#0f172a", borderRadius: "10px", textAlign: "center" }}>
+              <div style={{ fontSize: "1.5rem", marginBottom: "8px" }}>
+                Services Gained: <strong style={{ color: "#22c55e" }}>{result.netHits}</strong>
+              </div>
+              <div style={{ fontSize: "1.1rem" }}>
+                Drain Taken: <strong style={{ color: "#f87171" }}>{result.drainFinal}</strong>
+              </div>
             </div>
-
-            <DiceDisplay rolls={result.invocationRolls} label="🔮 Jet d'Invocation" color="#4ade80" />
-            <DiceDisplay rolls={result.spiritResistanceRolls} label="🛡️ Résistance de l'Esprit (Force × 2)" color="#f87171" />
-            <DiceDisplay rolls={result.drainResistanceRolls} label="🛡️ Résistance au Drain" color="#a855f7" />
-
-            <button onClick={validateSummoning} style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#111", border: "none", borderRadius: "12px", fontWeight: "bold", marginTop: "20px" }}>
-              ✅ Validate Summoning
-            </button>
           </div>
         )}
 
-        <button onClick={onClose} style={{ width: "100%", padding: "14px", marginTop: "12px", background: "transparent", border: "2px solid #64748b", color: "#94a3b8", borderRadius: "8px" }}>
-          Fermer
+        <button onClick={onClose} style={{ width: "100%", marginTop: "20px", padding: "14px", background: "#64748b", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>
+          Close
         </button>
       </div>
     </div>

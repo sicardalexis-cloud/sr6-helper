@@ -7,7 +7,7 @@ interface ActiveSpirit {
   servicesRemaining: number;
   conditionDamage: number;
   invocationDate: string;
-  solarPhase: "Jour" | "Nuit";
+  solarPhase: "Day" | "Night";
   solarTokens: number;
 }
 
@@ -23,7 +23,7 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
   if (!isOpen) return null;
 
   const updateSpirit = (id: number, updater: (s: ActiveSpirit) => ActiveSpirit) => {
-    setActiveSpirits(activeSpirits.map(s => s.id === id ? updater(s) : s));
+    setActiveSpirits(prev => prev.map(s => s.id === id ? updater(s) : s));
   };
 
   const changeServices = (id: number, delta: number) => {
@@ -38,46 +38,30 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
   };
 
   const advanceSolarPhase = () => {
-    const updated = activeSpirits
-      .map(s => ({ ...s, solarTokens: Math.max(0, s.solarTokens - 1) }))
-      .filter(s => s.solarTokens > 0);
-    setActiveSpirits(updated);
+    setActiveSpirits(prev =>
+      prev
+        .map(s => ({ ...s, solarTokens: Math.max(0, s.solarTokens - 1) }))
+        .filter(s => s.solarTokens > 0)
+    );
   };
 
   return (
-    <div style={{ 
-      position: "fixed", 
-      inset: 0, 
-      background: "rgba(0,0,0,0.95)", 
-      zIndex: 1000, 
-      display: "flex", 
-      alignItems: "center", 
-      justifyContent: "center" 
-    }}>
-      <div style={{ 
-        background: "#0f172a", 
-        width: "94%", 
-        maxWidth: "720px", 
-        borderRadius: "16px", 
-        padding: "20px", 
-        border: "2px solid #c084fc", 
-        maxHeight: "90vh", 
-        overflow: "auto" 
-      }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: "#0f172a", width: "94%", maxWidth: "720px", borderRadius: "16px", padding: "20px", border: "2px solid #c084fc", maxHeight: "90vh", overflow: "auto" }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#c084fc", margin: 0 }}>ESPRITS ACTIFS ({activeSpirits.length})</h2>
+          <h2 style={{ color: "#c084fc", margin: 0 }}>ACTIVE SPIRITS ({activeSpirits.length})</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
 
         {activeSpirits.length === 0 ? (
           <div style={{ textAlign: "center", padding: "80px 20px", color: "#94a3b8", fontSize: "1.1rem" }}>
-            Aucun esprit actif pour le moment.<br/>
-            Invoquez des esprits via le menu Summoning !
+            No active spirits yet.<br/>
+            Summon some using the Summoning menu!
           </div>
         ) : (
           <>
-            {/* Bouton Avancer Phase Solaire */}
+            {/* Solar Phase Button */}
             <button 
               onClick={advanceSolarPhase}
               style={{ 
@@ -93,18 +77,14 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
                 cursor: "pointer"
               }}
             >
-              🌞 Avancer Phase Solaire (Retire 1 token à tous les esprits)
+              🌞 Advance Solar Phase (Remove 1 token from all)
             </button>
 
             {activeSpirits.map((spirit) => {
               const maxCM = 8 + Math.ceil(spirit.force / 2);
               return (
-                <div key={spirit.id} style={{ 
-                  background: "#1e2937", 
-                  padding: "18px", 
-                  borderRadius: "12px", 
-                  marginBottom: "16px" 
-                }}>
+                <div key={spirit.id} style={{ background: "#1e2937", padding: "18px", borderRadius: "12px", marginBottom: "16px" }}>
+                  
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                     <div>
                       <strong style={{ color: "#c084fc", fontSize: "1.35rem" }}>{spirit.element}</strong>{" "}
@@ -112,35 +92,23 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
                     </div>
                     <button 
                       onClick={() => onViewSpirit(spirit)}
-                      style={{ 
-                        padding: "8px 16px", 
-                        background: "#4f46e5", 
-                        color: "white", 
-                        border: "none", 
-                        borderRadius: "6px", 
-                        cursor: "pointer",
-                        fontWeight: "bold"
-                      }}
+                      style={{ padding: "8px 16px", background: "#4f46e5", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
                     >
-                      Voir la Fiche
+                      View Sheet
                     </button>
                   </div>
 
-                  {/* Services Restants */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "12px 0" }}>
-                    <span style={{ minWidth: "150px" }}>🛡️ Services restants :</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <button 
-                        onClick={() => changeServices(spirit.id, -1)}
-                        style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#334155", color: "white", fontSize: "1.3rem" }}
-                      >−</button>
-                      <strong style={{ fontSize: "1.6rem", minWidth: "50px", textAlign: "center" }}>
-                        {spirit.servicesRemaining}
-                      </strong>
-                      <button 
-                        onClick={() => changeServices(spirit.id, 1)}
-                        style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#334155", color: "white", fontSize: "1.3rem" }}
-                      >+</button>
+                  {/* Services */}
+                  <div style={{ background: "#334155", padding: "12px", borderRadius: "8px", marginBottom: "14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "1.1rem" }}>🛡️ Services Remaining</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <button onClick={() => changeServices(spirit.id, -1)} style={{ width: "40px", height: "40px", fontSize: "1.4rem", borderRadius: "50%", background: "#1e2937" }}>-</button>
+                        <strong style={{ fontSize: "2rem", minWidth: "60px", textAlign: "center", color: "#67e8f9" }}>
+                          {spirit.servicesRemaining}
+                        </strong>
+                        <button onClick={() => changeServices(spirit.id, 1)} style={{ width: "40px", height: "40px", fontSize: "1.4rem", borderRadius: "50%", background: "#1e2937" }}>+</button>
+                      </div>
                     </div>
                   </div>
 
@@ -153,8 +121,8 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
                           key={i}
                           onClick={() => changeCondition(spirit.id, i + 1 === spirit.conditionDamage ? Math.max(0, spirit.conditionDamage - 1) : i + 1)}
                           style={{
-                            width: "30px",
-                            height: "30px",
+                            width: "32px",
+                            height: "32px",
                             border: "2px solid #475569",
                             borderRadius: "6px",
                             background: i < spirit.conditionDamage ? "#ef4444" : "#1e2937",
@@ -165,8 +133,8 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
                     </div>
                   </div>
 
-                  <div style={{ color: "#94a3b8", fontSize: "0.95rem" }}>
-                    Tokens Solaires : <strong>{spirit.solarTokens}/2</strong>
+                  <div style={{ color: "#94a3b8" }}>
+                    Solar Tokens : <strong>{spirit.solarTokens}/2</strong>
                   </div>
                 </div>
               );
@@ -174,21 +142,8 @@ export default function SpiritsModal({ isOpen, onClose, activeSpirits, setActive
           </>
         )}
 
-        <button 
-          onClick={onClose} 
-          style={{ 
-            width: "100%", 
-            padding: "14px", 
-            marginTop: "10px", 
-            background: "#64748b", 
-            color: "white", 
-            border: "none", 
-            borderRadius: "8px", 
-            cursor: "pointer", 
-            fontWeight: "bold" 
-          }}
-        >
-          Fermer
+        <button onClick={onClose} style={{ width: "100%", padding: "14px", marginTop: "10px", background: "#64748b", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" }}>
+          Close
         </button>
       </div>
     </div>

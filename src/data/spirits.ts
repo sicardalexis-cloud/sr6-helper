@@ -14,7 +14,7 @@ export const SPIRIT_TYPES: SpiritConfig[] = [
   { type: 'air', label: 'Air', emoji: '💨', color: '#67E8F9' },
   { type: 'water', label: 'Water', emoji: '🌊', color: '#3B82F6' },
   { type: 'fire', label: 'Fire', emoji: '🔥', color: '#EF4444' },
-  { type: 'earth', label: 'Earth', emoji: '🪨', color: '#A16207' },
+  { type: 'earth', label: 'Earth', emoji: '🏔️', color: '#A16207' },
   { type: 'man', label: 'Man', emoji: '👤', color: '#A78BFA' },
   { type: 'beast', label: 'Beasts', emoji: '🐺', color: '#22C55E' },
   { type: 'plant', label: 'Plant', emoji: '🌿', color: '#4ADE80' },
