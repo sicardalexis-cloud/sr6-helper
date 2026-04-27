@@ -11,9 +11,9 @@ interface Props {
 export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const { updateSpirit } = useCharacterContext();
 
-  if (!isOpen || !spirit) return null;
+  if (!isOpen || !spirit || !spirit.element) return null;
 
-  const F = spirit.force;
+  const F = spirit.force || 1;
   const spiritType = spirit.element.toLowerCase() as SpiritType;
   const stats = SPIRIT_STATS[spiritType] || SPIRIT_STATS.fire;
 
@@ -50,6 +50,10 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       .replace(/\{F\/2\}/g, Math.floor(F / 2).toString());
   };
 
+  // Calcul des initiatives (remplace F+8 par la valeur réelle)
+  const physicalInit = stats.initiativePhysical.replace("F+8", (F + 8).toString());
+  const astralInit = stats.initiativeAstral.replace("F+8", (F + 8).toString());
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ background: "#0f172a", width: "94%", maxWidth: "760px", borderRadius: "16px", padding: "24px", border: "2px solid #c084fc", maxHeight: "94vh", overflow: "auto" }}>
@@ -63,7 +67,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
 
         {/* Header */}
         <div style={{ background: "#1e2937", padding: "12px", borderRadius: "10px", marginBottom: "20px", display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          <div>📅 {spirit.invocationDate} — {spirit.solarPhase}</div>
+          <div>📅 {spirit.invocationDate || "—"} — {spirit.solarPhase}</div>
           <div>🔵 Solar Tokens: <strong>{spirit.solarTokens}/2</strong></div>
           <div>❤️ Services: <strong>{spirit.servicesRemaining}</strong></div>
         </div>
@@ -90,7 +94,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           )}
         </div>
 
-        {/* Attributes + Combat + Skills (simplifiés) */}
+        {/* Attributes */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>ATTRIBUTES</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px" }}>
@@ -103,16 +107,18 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
+        {/* Combat Statistics - CORRIGÉ */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>COMBAT STATISTICS</h3>
           <div style={{ lineHeight: "1.8rem" }}>
             <strong>Defense Rating:</strong> {F + 2}<br/>
             <strong>Movement:</strong> {stats.movement}<br/>
-            <strong>Physical Initiative:</strong> {stats.initiativePhysical}<br/>
-            <strong>Astral Initiative:</strong> {stats.initiativeAstral}
+            <strong>Physical Initiative:</strong> {physicalInit}<br/>
+            <strong>Astral Initiative:</strong> {astralInit}
           </div>
         </div>
 
+        {/* Skills */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>SKILLS</h3>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -124,32 +130,27 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* === Amélioration des pouvoirs === */}
+        {/* Base Powers & Optional Powers (inchangés) */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>BASE POWERS</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {stats.powers?.map((p: string, i: number) => (
-              <div key={i} style={{ padding: "10px", background: "#0f172a", borderRadius: "8px" }}>
-                <div 
-                  onClick={() => toggleDescription(p)}
-                  style={{ cursor: "pointer", color: "#67e8f9", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  ▶ {p}
-                </div>
-                {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "24px", lineHeight: "1.5" }}>
-                    {POWER_DESCRIPTIONS[p]}
-                  </div>
-                )}
+          {stats.powers?.map((p: string, i: number) => (
+            <div key={i} style={{ marginBottom: "8px", padding: "10px", background: "#0f172a", borderRadius: "8px" }}>
+              <div onClick={() => toggleDescription(p)} style={{ cursor: "pointer", color: "#67e8f9", fontWeight: "500" }}>
+                ▶ {p}
               </div>
-            ))}
-          </div>
+              {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
+                <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "20px" }}>
+                  {POWER_DESCRIPTIONS[p]}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>OPTIONAL POWERS</h3>
           {stats.optionalPowers?.map((p: string, i: number) => (
-            <div key={i} style={{ marginBottom: "12px", padding: "12px", background: "#0f172a", borderRadius: "8px" }}>
+            <div key={i} style={{ marginBottom: "12px" }}>
               <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                 <input
                   type="checkbox"
@@ -157,12 +158,10 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
                   onChange={() => toggleOptionalPower(p)}
                   style={{ marginRight: "12px", accentColor: "#67e8f9", transform: "scale(1.3)" }}
                 />
-                <span style={{ color: "#67e8f9", flex: 1, fontWeight: "500" }} onClick={() => toggleDescription(p)}>
-                  {p}
-                </span>
+                <span style={{ color: "#67e8f9", flex: 1 }} onClick={() => toggleDescription(p)}>{p}</span>
               </label>
               {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "36px", lineHeight: "1.5" }}>
+                <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "6px", paddingLeft: "36px" }}>
                   {POWER_DESCRIPTIONS[p]}
                 </div>
               )}

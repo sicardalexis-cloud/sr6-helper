@@ -27,7 +27,7 @@ export default function AttributesPanel() {
                 –
               </button>
               
-              <strong style={{ fontSize: "1.5rem", minWidth: "40px" }}>{value}</strong>
+              <strong style={{ fontSize: "1.5rem", minWidth: "40px" }}>{String(value ?? '')}</strong>
               
               <button 
                 onClick={() => handleAttributeChange(key, Number(value) + 1)}
