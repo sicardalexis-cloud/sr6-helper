@@ -25,29 +25,22 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const spiritType = spirit.element.toLowerCase() as SpiritType;
   const stats = SPIRIT_STATS[spiritType] || SPIRIT_STATS.fire;
 
-  // État pour les pouvoirs optionnels cochés
   const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(new Set());
+  const [expandedPowers, setExpandedPowers] = useState<Set<string>>(new Set());
 
   const toggleOptionalPower = (power: string) => {
     const newSet = new Set(selectedOptionalPowers);
-    if (newSet.has(power)) {
-      newSet.delete(power);
-    } else {
-      newSet.add(power);
-    }
+    newSet.has(power) ? newSet.delete(power) : newSet.add(power);
     setSelectedOptionalPowers(newSet);
   };
 
-  const [expandedPowers, setExpandedPowers] = useState<Set<string>>(new Set());
-
   const toggleDescription = (power: string) => {
     const newSet = new Set(expandedPowers);
-    if (newSet.has(power)) newSet.delete(power);
-    else newSet.add(power);
+    newSet.has(power) ? newSet.delete(power) : newSet.add(power);
     setExpandedPowers(newSet);
   };
 
-  // Calculs (identiques)
+  // Calculs
   const attributes: Record<string, number> = {};
   Object.entries(stats?.attributes || {}).forEach(([key, formula]) => {
     let val = F;
@@ -77,8 +70,25 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#0f172a", width: "94%", maxWidth: "720px", borderRadius: "16px", padding: "24px", border: "2px solid #c084fc", maxHeight: "92vh", overflow: "auto" }}>
+    <div style={{ 
+      position: "fixed", 
+      inset: 0, 
+      background: "rgba(0,0,0,0.95)", 
+      zIndex: 1100, 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "center" 
+    }}>
+      <div style={{ 
+        background: "#0f172a", 
+        width: "94%", 
+        maxWidth: "720px", 
+        borderRadius: "16px", 
+        padding: "24px", 
+        border: "2px solid #c084fc", 
+        maxHeight: "92vh", 
+        overflow: "auto" 
+      }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>SPIRIT SHEET — {spirit.element.toUpperCase()}</h2>
@@ -135,10 +145,10 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
             <div key={i} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "10px" }}>
               <strong style={{ color: "#f87171" }}>{a.name}</strong> — DV: {a.dv} | AR: {calculateAR(a.attackRatings)}
             </div>
-          )) : <div>No attacks defined.</div>}
+          )) : <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", color: "#94a3b8" }}>No attacks defined.</div>}
         </div>
 
-        {/* BASE POWERS (cliquable pour description) */}
+        {/* BASE POWERS */}
         <div style={{ marginBottom: "28px" }}>
           <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "12px" }}>BASE POWERS</div>
           <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
@@ -149,12 +159,12 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
                   <strong>{p}</strong>
                 </div>
                 {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "28px", lineHeight: "1.45" }}>
+                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "8px", paddingLeft: "28px" }}>
                     {POWER_DESCRIPTIONS[p]}
                   </div>
                 )}
               </div>
-            ))}
+            )) || <div>No base powers.</div>}
           </div>
         </div>
 
@@ -169,18 +179,14 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
                     type="checkbox"
                     checked={selectedOptionalPowers.has(p)}
                     onChange={() => toggleOptionalPower(p)}
-                    style={{ marginRight: "10px", accentColor: "#67e8f9", transform: "scale(1.2)" }}
+                    style={{ marginRight: "12px", accentColor: "#67e8f9", transform: "scale(1.3)" }}
                   />
-                  <span 
-                    style={{ color: "#67e8f9", fontWeight: "500", flex: 1 }} 
-                    onClick={() => toggleDescription(p)}
-                  >
+                  <span style={{ color: "#67e8f9", flex: 1 }} onClick={() => toggleDescription(p)}>
                     {p}
                   </span>
                 </label>
-
                 {expandedPowers.has(p) && POWER_DESCRIPTIONS[p] && (
-                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "6px", paddingLeft: "32px", lineHeight: "1.45" }}>
+                  <div style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "6px", paddingLeft: "36px", lineHeight: "1.45" }}>
                     {POWER_DESCRIPTIONS[p]}
                   </div>
                 )}
@@ -190,8 +196,17 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
         </div>
 
         <button 
-          onClick={onClose}
-          style={{ width: "100%", padding: "16px", marginTop: "30px", background: "#334155", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}
+          onClick={onClose} 
+          style={{ 
+            width: "100%", 
+            padding: "16px", 
+            marginTop: "30px", 
+            background: "#334155", 
+            color: "white", 
+            border: "none", 
+            borderRadius: "10px", 
+            fontWeight: "bold" 
+          }}
         >
           Close
         </button>

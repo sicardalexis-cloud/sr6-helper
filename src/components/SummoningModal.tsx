@@ -4,6 +4,7 @@ import { SPIRIT_TYPES } from "../data/spirits";
 interface SummoningResult {
   netHits: number;
   drainFinal: number;
+  drainTotal: number;           // Drain cumulé pendant cette série d'essais
   attempts: number;
   invocationRolls: number[];
   spiritRolls: number[];
@@ -58,6 +59,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
   const [result, setResult] = useState<SummoningResult | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [totalDrainAccumulated, setTotalDrainAccumulated] = useState(0);
 
   const [invocationDate, setInvocationDate] = useState(new Date().toISOString().split('T')[0]);
   const [solarPhase, setSolarPhase] = useState<"Day" | "Night">("Day");
@@ -65,7 +67,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const rollDice = (pool: number) => Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
   const countHits = (dice: number[]) => dice.filter(d => d >= 5).length;
 
-  const performSummon = () => {
+  const performSummon = (currentAccumulated: number) => {
     const invocationRolls = rollDice(conjuringPool);
     const spiritRolls = rollDice(force * 2);
     const drainRolls = rollDice(drainResistancePool);
@@ -74,9 +76,13 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     const spiritHits = countHits(spiritRolls);
     const drainHits = countHits(drainRolls);
 
+    // Correction : drain = spiritHits - drainHits (selon tes règles)
+    const drainFinalThisAttempt = Math.max(0, spiritHits - drainHits);
+
     return {
       netHits: Math.max(0, invHits - spiritHits),
-      drainFinal: Math.max(0, spiritHits - drainHits),
+      drainFinal: drainFinalThisAttempt,
+      drainTotal: currentAccumulated + drainFinalThisAttempt,
       attempts: 1,
       invocationRolls,
       spiritRolls,
@@ -85,21 +91,29 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   };
 
   const handleSummon = async () => {
-    setIsRolling(true);
+    // RESET DU DRAIN À CHAQUE NOUVEAU LANCER
     setResult(null);
+    setTotalDrainAccumulated(0);
+    setIsRolling(true);
 
     let attempts = 0;
-    let totalDrain = 0;
+    let accumulated = 0;
     let finalResult: SummoningResult | null = null;
 
     while (attempts < maxAttempts) {
       attempts++;
-      const roll = performSummon();
-      totalDrain += roll.drainFinal;
+      
+      const roll = performSummon(accumulated);
+      accumulated = roll.drainTotal;
       finalResult = { ...roll, attempts };
-      setResult(finalResult);
 
-      if (roll.netHits >= 1 || !useRetry || totalDrain >= maxDrain) break;
+      setResult(finalResult);
+      setTotalDrainAccumulated(accumulated);
+
+      if (roll.netHits >= 1 || !useRetry || accumulated >= maxDrain) {
+        break;
+      }
+
       await new Promise(r => setTimeout(r, 600));
     }
 
@@ -109,14 +123,14 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const validateSummoning = () => {
     if (!result) return;
 
-    // Appliquer le drain même en cas d'échec
-    if (result.drainFinal > 0) {
+    // Appliquer le drain cumulé
+    if (result.drainTotal > 0) {
       update((draft: any) => {
-        draft.stun = (draft.stun || 0) + result.drainFinal;
+        draft.stun = (draft.stun || 0) + result.drainTotal;
       });
     }
 
-    // Ajouter l'esprit seulement si succès
+    // Ajouter l'esprit seulement en cas de succès
     if (result.netHits >= 1) {
       addSpirit({
         element: selectedSpiritType,
@@ -129,8 +143,9 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       });
     }
 
-    // Effacer les résultats après confirmation
+    // Reset après validation
     setResult(null);
+    setTotalDrainAccumulated(0);
   };
 
   if (!isOpen) return null;
@@ -188,7 +203,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           </div>
         </div>
 
-        {/* Retry + Date & Phase */}
+        {/* Retry Options */}
         <div style={{ marginBottom: "24px" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <input type="checkbox" checked={useRetry} onChange={e => setUseRetry(e.target.checked)} />
@@ -197,8 +212,12 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
           {useRetry && (
             <div style={{ padding: "14px", background: "#1e2937", borderRadius: "10px", marginBottom: "16px" }}>
-              <div>Max Attempts: {maxAttempts} <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} /></div>
-              <div>Max Drain: {maxDrain} <input type="range" min="1" max="12" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} /></div>
+              <div>Max Attempts: {maxAttempts} 
+                <input type="range" min="1" max="10" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
+              </div>
+              <div>Max Cumulative Drain: {maxDrain} 
+                <input type="range" min="1" max="15" value={maxDrain} onChange={e => setMaxDrain(Number(e.target.value))} style={{ width: "100%" }} />
+              </div>
             </div>
           )}
 
@@ -253,7 +272,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
                 Services Gained: <strong style={{ color: "#22c55e" }}>{result.netHits}</strong>
               </div>
               <div style={{ fontSize: "1.1rem" }}>
-                Drain Taken: <strong style={{ color: "#f87171" }}>{result.drainFinal}</strong>
+                Total Drain Taken: <strong style={{ color: "#f87171" }}>{result.drainTotal}</strong>
               </div>
             </div>
           </div>
