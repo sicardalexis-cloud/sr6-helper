@@ -9,11 +9,16 @@ import ConditionMonitors from "./components/ConditionMonitors";
 import BottomSections from "./components/BottomSections";
 import SummoningModal from "./components/SummoningModal";
 import SpiritsModal from "./components/SpiritsModal";
+import SpiritSheetModal from "./components/SpiritSheetModal";
 
 export default function App() {
   const { char, update } = useCharacter();
+
   const [isSummoningOpen, setIsSummoningOpen] = useState(false);
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
+  const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
+  const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
+
   const [activeSpirits, setActiveSpirits] = useState<any[]>([]);
 
   const addSpirit = (newSpirit: any) => {
@@ -21,8 +26,14 @@ export default function App() {
       ...newSpirit,
       id: Date.now(),
       servicesRemaining: newSpirit.services || 1,
-      conditionDamage: 0
+      conditionDamage: 0,
+      solarTokens: 2,
     }]);
+  };
+
+  const openSpiritSheet = (spirit: any) => {
+    setSelectedSpirit(spirit);
+    setIsSpiritSheetOpen(true);
   };
 
   return (
@@ -55,6 +66,13 @@ export default function App() {
           onClose={() => setIsSpiritsOpen(false)}
           activeSpirits={activeSpirits}
           setActiveSpirits={setActiveSpirits}
+          onViewSpirit={openSpiritSheet}
+        />
+
+        <SpiritSheetModal 
+          isOpen={isSpiritSheetOpen} 
+          onClose={() => setIsSpiritSheetOpen(false)}
+          spirit={selectedSpirit}
         />
       </div>
     </div>
