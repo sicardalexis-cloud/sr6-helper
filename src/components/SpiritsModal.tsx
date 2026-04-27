@@ -7,7 +7,7 @@ interface ActiveSpirit {
   servicesRemaining: number;
   conditionDamage: number;
   invocationDate: string;
-  solarPhase: "Day" | "Night";     // Standardisé en anglais
+  solarPhase: "Day" | "Night";   // Standardisé en anglais
   solarTokens: number;
 }
 
@@ -104,7 +104,6 @@ export default function SpiritsModal({
                     </button>
                   </div>
 
-                  {/* Services */}
                   <div style={{ background: "#334155", padding: "12px", borderRadius: "8px", marginBottom: "14px" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span>🛡️ Services Remaining</span>
@@ -118,7 +117,6 @@ export default function SpiritsModal({
                     </div>
                   </div>
 
-                  {/* Condition Monitor */}
                   <div style={{ marginBottom: "12px" }}>
                     <div style={{ marginBottom: "6px", color: "#94a3b8" }}>Condition Monitor</div>
                     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>

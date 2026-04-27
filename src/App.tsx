@@ -19,7 +19,7 @@ export interface ActiveSpirit {
   servicesRemaining: number;
   conditionDamage: number;
   invocationDate: string;
-  solarPhase: "Jour" | "Nuit";
+  solarPhase: "Day" | "Night";
   solarTokens: number;
 }
 
