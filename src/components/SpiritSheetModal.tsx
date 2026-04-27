@@ -11,16 +11,18 @@ interface Props {
 export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const { updateSpirit } = useCharacterContext();
 
+  // ==================== TOUS LES HOOKS EN PREMIER ====================
+  const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(
+    new Set(spirit?.optionalPowers || [])
+  );
+  const [expandedPowers, setExpandedPowers] = useState<Set<string>>(new Set());
+
+  // Early return APRÈS les hooks
   if (!isOpen || !spirit || !spirit.element) return null;
 
   const F = spirit.force || 1;
   const spiritType = spirit.element.toLowerCase() as SpiritType;
   const stats = SPIRIT_STATS[spiritType] || SPIRIT_STATS.fire;
-
-  const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(
-    new Set(spirit.optionalPowers || [])
-  );
-  const [expandedPowers, setExpandedPowers] = useState<Set<string>>(new Set());
 
   const toggleOptionalPower = (power: string) => {
     const newSet = new Set(selectedOptionalPowers);
@@ -49,10 +51,6 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       .replace(/\{F\/2 \+ 1\}/g, (Math.floor(F / 2) + 1).toString())
       .replace(/\{F\/2\}/g, Math.floor(F / 2).toString());
   };
-
-  // Calcul des initiatives (remplace F+8 par la valeur réelle)
-  const physicalInit = stats.initiativePhysical.replace("F+8", (F + 8).toString());
-  const astralInit = stats.initiativeAstral.replace("F+8", (F + 8).toString());
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -94,7 +92,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           )}
         </div>
 
-        {/* Attributes */}
+        {/* Attributs */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>ATTRIBUTES</h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "12px" }}>
@@ -107,14 +105,14 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* Combat Statistics - CORRIGÉ */}
+        {/* Combat Statistics */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>COMBAT STATISTICS</h3>
           <div style={{ lineHeight: "1.8rem" }}>
             <strong>Defense Rating:</strong> {F + 2}<br/>
             <strong>Movement:</strong> {stats.movement}<br/>
-            <strong>Physical Initiative:</strong> {physicalInit}<br/>
-            <strong>Astral Initiative:</strong> {astralInit}
+            <strong>Physical Initiative:</strong> {F + 8} + 2D6<br/>
+            <strong>Astral Initiative:</strong> {F + 8} + 3D6
           </div>
         </div>
 
@@ -130,7 +128,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* Base Powers & Optional Powers (inchangés) */}
+        {/* Base Powers */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "20px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>BASE POWERS</h3>
           {stats.powers?.map((p: string, i: number) => (
@@ -147,6 +145,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           ))}
         </div>
 
+        {/* Optional Powers */}
         <div style={{ background: "#1e2937", padding: "16px", borderRadius: "12px" }}>
           <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>OPTIONAL POWERS</h3>
           {stats.optionalPowers?.map((p: string, i: number) => (
