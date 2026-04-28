@@ -217,7 +217,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
             <div style={{ flex: 1 }}>
               <label>Seuil de drain max : <strong>{drainThreshold}</strong></label>
               <input type="range" min="2" max="12" value={drainThreshold} onChange={e => setDrainThreshold(Number(e.target.value))} style={{ width: "100%" }} />
-            </div>
+            </div> 
           </div>
         )}
 
