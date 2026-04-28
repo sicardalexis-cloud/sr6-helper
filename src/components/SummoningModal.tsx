@@ -38,7 +38,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     setIsRolling(true);
     let totalDrain = 0;
     let attemptsDone = 0;
-    let finalResult: SummoningResult | null = null;
 
     const trySummon = () => {
       attemptsDone++;
@@ -64,7 +63,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       };
 
       if (netHits >= 1 || attemptsDone >= maxAttempts || totalDrain >= drainThreshold) {
-        finalResult = currentResult;
         setResult(currentResult);
         setIsRolling(false);
         return;
@@ -84,14 +82,14 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const confirmSummoning = () => {
     if (!result) return;
 
-    // Appliquer le drain cumulé
+    // Appliquer le drain
     if (result.drainTotal > 0) {
       update((draft: any) => {
         draft.drainStun = (draft.drainStun || 0) + result.drainTotal;
       });
     }
 
-    // Ajouter l'esprit seulement en cas de succès
+    // Ajouter l'esprit en cas de succès
     if (result.netHits >= 1) {
       addSpirit({
         element: selectedSpiritType,
@@ -104,9 +102,11 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       });
     }
 
-    // Reset + fermeture du modal
+    // Reset + fermeture sécurisée (fix Pixel 8)
     setResult(null);
-    onClose();                    // ← FIX PRINCIPAL
+    setTimeout(() => {
+      onClose();
+    }, 10); // petit délai pour laisser React terminer le rendu
   };
 
   const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
@@ -152,9 +152,10 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         borderRadius: "16px",
         border: "2px solid #c084fc",
         padding: "20px",
-        maxHeight: "100dvh",                    // ← plus fiable sur mobile
+        maxHeight: "100svh",                    // ← changé pour svh (meilleur sur Android)
         overflowY: "auto",
-        WebkitOverflowScrolling: "touch",       // ← crucial iOS
+        WebkitOverflowScrolling: "touch",
+        overscrollBehavior: "contain",          // ← empêche le scroll bizarre Android
         boxShadow: "0 0 30px rgba(103, 232, 249, 0.3)",
       }}>
         
@@ -162,6 +163,9 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
+
+        {/* Le reste du contenu est IDENTIQUE à ta version précédente */}
+        {/* Choix du type d'esprit, sliders, auto retry, bouton lancer, résultats, etc. */}
 
         {/* Choix du type d'esprit */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))", gap: "10px", marginBottom: "20px" }}>
