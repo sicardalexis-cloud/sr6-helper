@@ -13,7 +13,12 @@ import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 
 function AppContent() {
-  const { char, update } = useCharacterContext();
+  const { 
+    char, 
+    update, 
+    addSpirit, 
+    applyDrain 
+  } = useCharacterContext();
 
   const [isSummoningOpen, setIsSummoningOpen] = useState(false);
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
@@ -26,7 +31,9 @@ function AppContent() {
   };
 
   const updateName = (newName: string) => {
-    update((draft) => { draft.name = newName; });
+    update((draft: any) => {
+      draft.name = newName;
+    });
   };
 
   return (
@@ -37,7 +44,7 @@ function AppContent() {
       display: "flex",
       justifyContent: "center"
     }}>
-      <div style={{ width: "100%", maxWidth: "1100px" }}>   {/* ← Limite la largeur */}
+      <div style={{ width: "100%", maxWidth: "1100px" }}>
 
         {/* Nom du Personnage */}
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
@@ -55,14 +62,11 @@ function AppContent() {
               padding: "10px 24px",
               borderRadius: "10px",
               width: "360px",
-              outline: "none",
-              boxShadow: "0 0 20px rgba(34, 255, 136, 0.4)"
+              outline: "none"
             }}
-            placeholder="Nom du Personnage"
           />
         </div>
 
-        {/* Contenu principal */}
         <div style={{
           background: "#111827",
           border: "2px solid #22ff88",
@@ -83,9 +87,27 @@ function AppContent() {
       </div>
 
       {/* Modals */}
-      <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} addSpirit={char.addSpirit} applyDrain={char.applyDrain} />
-      <SpiritsModal isOpen={isSpiritsOpen} onClose={() => setIsSpiritsOpen(false)} onViewSpirit={openSpiritSheet} />
-      <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} />
+      <SummoningModal 
+        isOpen={isSummoningOpen}
+        onClose={() => setIsSummoningOpen(false)}
+        addSpirit={addSpirit}
+        update={update}           // ← important si tu utilises update aussi
+      />
+      
+      <SpiritsModal 
+        isOpen={isSpiritsOpen}
+        onClose={() => setIsSpiritsOpen(false)}
+        onViewSpirit={openSpiritSheet}
+      />
+
+      <SpiritSheetModal 
+        isOpen={isSpiritSheetOpen}
+        onClose={() => {
+          setIsSpiritSheetOpen(false);
+          setSelectedSpirit(null);
+        }}
+        spirit={selectedSpirit}
+      />
     </div>
   );
 }
