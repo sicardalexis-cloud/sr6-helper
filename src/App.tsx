@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./styles.css";
 
 import AttributesPanel from "./components/AttributesPanel";
@@ -33,33 +33,38 @@ export default function App() {
     };
   });
 
-  // Sauvegarde automatique
+  // Sauvegarde locale (optimisée pour éviter trop de re-renders)
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
 
-  // ==================== UPDATE FUNCTION (corrigée TS) ====================
-  const update = (fn: (draft: any) => void) => {
+  // ==================== UPDATE STABLE (useCallback) ====================
+  const update = useCallback((fn: (draft: any) => void) => {
     setChar((prev: any) => {
       const draft = { ...prev };
       fn(draft);
       return draft;
     });
-  };
+  }, []);
 
-  // ==================== FONCTIONS ESPRITS ====================
-  const addSpirit = (spiritData: any) => {
+  // ==================== ADD SPIRIT (stable + délai mobile) ====================
+  const addSpirit = useCallback((spiritData: any) => {
     const newSpirit = {
       ...spiritData,
       id: `spirit_${Date.now()}`,
-      optionalPowers: []
+      optionalPowers: [],
     };
-    update((draft) => {
-      draft.activeSpirits.push(newSpirit);
-    });
-  };
 
-  const advanceSolarPhase = () => {
+    // Petit délai pour laisser le modal se fermer complètement sur Android
+    setTimeout(() => {
+      update((draft) => {
+        if (!draft.activeSpirits) draft.activeSpirits = [];
+        draft.activeSpirits.push(newSpirit);
+      });
+    }, 30);
+  }, [update]);
+
+  const advanceSolarPhase = useCallback(() => {
     update((draft) => {
       if (!draft.activeSpirits || !Array.isArray(draft.activeSpirits)) return;
       draft.activeSpirits = draft.activeSpirits
@@ -69,11 +74,11 @@ export default function App() {
         }))
         .filter((spirit: any) => spirit.solarTokens > 0);
     });
-  };
+  }, [update]);
 
-  const updateName = (newName: string) => {
+  const updateName = useCallback((newName: string) => {
     update((draft) => { draft.name = newName; });
-  };
+  }, [update]);
 
   // ==================== MODALS ====================
   const [isSummoningOpen, setIsSummoningOpen] = useState(false);
@@ -81,10 +86,10 @@ export default function App() {
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
-  const openSpiritSheet = (spirit: any) => {
+  const openSpiritSheet = useCallback((spirit: any) => {
     setSelectedSpirit(spirit);
     setIsSpiritSheetOpen(true);
-  };
+  }, []);
 
   return (
     <div style={{
