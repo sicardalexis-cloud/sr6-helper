@@ -14,16 +14,13 @@ export default function AttributesPanel({ char, update }: Props) {
   };
 
   const changeAttribute = (attr: string, delta: number) => {
-    update((draft) => {
+    update((draft: any) => {
+      if (!draft.attributes) draft.attributes = {};
       draft.attributes[attr] = (draft.attributes[attr] || 3) + delta;
     });
   };
 
-  const attributes = [
-    "BOD", "AGI", "REA", "STR",
-    "WIL", "LOG", "INT", "CHA",
-    "MAGIC", "ESSENCE"
-  ];
+  const attributesList = ["BOD", "AGI", "REA", "STR", "WIL", "LOG", "INT", "CHA", "MAGIC", "ESSENCE"];
 
   return (
     <div style={{
@@ -40,7 +37,7 @@ export default function AttributesPanel({ char, update }: Props) {
         gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
         gap: "12px"
       }}>
-        {attributes.map(attr => {
+        {attributesList.map(attr => {
           const value = char.attributes?.[attr] ?? 3;
           const isEditing = editingAttr === attr;
 
@@ -63,7 +60,6 @@ export default function AttributesPanel({ char, update }: Props) {
                   fontWeight: "bold",
                   color: "#f1f5f9",
                   cursor: "pointer",
-                  userSelect: "none",
                   padding: "4px 0"
                 }}
               >
@@ -81,14 +77,14 @@ export default function AttributesPanel({ char, update }: Props) {
                       width: "36px",
                       height: "36px",
                       borderRadius: "50%",
-                      fontSize: "1.2rem",
+                      fontSize: "1.3rem",
                       cursor: "pointer"
                     }}
                   >
                     −
                   </button>
                   <button
-                    onClick={() => changeAttribute(attr, +1)}
+                    onClick={() => changeAttribute(attr, 1)}
                     style={{
                       background: "#22c55e",
                       color: "white",
@@ -96,7 +92,7 @@ export default function AttributesPanel({ char, update }: Props) {
                       width: "36px",
                       height: "36px",
                       borderRadius: "50%",
-                      fontSize: "1.2rem",
+                      fontSize: "1.3rem",
                       cursor: "pointer"
                     }}
                   >

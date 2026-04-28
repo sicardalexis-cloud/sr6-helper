@@ -1,6 +1,6 @@
 // src/App.tsx
-import React, { useState } from "react";
-import { CharacterProvider, useCharacterContext } from "./contexts/CharacterContext";
+import React, { useState, useEffect } from "react";
+import "./styles.css";
 
 import AttributesPanel from "./components/AttributesPanel";
 import EdgePool from "./components/EdgePool";
@@ -12,14 +12,70 @@ import SummoningModal from "./components/SummoningModal";
 import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 
-function AppContent() {
-  const { 
-    char, 
-    update, 
-    addSpirit, 
-    applyDrain 
-  } = useCharacterContext();
+const STORAGE_KEY = 'kage-character';
 
+export default function App() {
+  // ==================== STATE GLOBAL ====================
+  const [char, setChar] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      name: "KAGE",
+      attributes: { BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3, LOG: 3, INT: 3, CHA: 3, MAGIC: 6, ESSENCE: 6 },
+      edge: { current: 7, max: 7 },
+      minorActions: { current: 2, max: 3 },
+      physical: 0,
+      stun: 0,
+      drainStun: 0,
+      activeSpirits: []
+    };
+  });
+
+  // Sauvegarde automatique
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
+  }, [char]);
+
+  // ==================== UPDATE FUNCTION (corrigée TS) ====================
+  const update = (fn: (draft: any) => void) => {
+    setChar((prev: any) => {
+      const draft = { ...prev };
+      fn(draft);
+      return draft;
+    });
+  };
+
+  // ==================== FONCTIONS ESPRITS ====================
+  const addSpirit = (spiritData: any) => {
+    const newSpirit = {
+      ...spiritData,
+      id: `spirit_${Date.now()}`,
+      optionalPowers: []
+    };
+    update((draft) => {
+      draft.activeSpirits.push(newSpirit);
+    });
+  };
+
+  const advanceSolarPhase = () => {
+    update((draft) => {
+      if (!draft.activeSpirits || !Array.isArray(draft.activeSpirits)) return;
+      draft.activeSpirits = draft.activeSpirits
+        .map((spirit: any) => ({
+          ...spirit,
+          solarTokens: Math.max(0, spirit.solarTokens - 1)
+        }))
+        .filter((spirit: any) => spirit.solarTokens > 0);
+    });
+  };
+
+  const updateName = (newName: string) => {
+    update((draft) => { draft.name = newName; });
+  };
+
+  // ==================== MODALS ====================
   const [isSummoningOpen, setIsSummoningOpen] = useState(false);
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
@@ -30,21 +86,12 @@ function AppContent() {
     setIsSpiritSheetOpen(true);
   };
 
-  const updateName = (newName: string) => {
-    update((draft: any) => {
-      draft.name = newName;
-    });
-  };
-
   return (
     <div style={{
       background: "radial-gradient(circle at center, #1a2333 0%, #0a0f1c 100%)",
-      minHeight: "100vh", 
-      padding: "20px",
-      display: "flex",
-      justifyContent: "center"
+      minHeight: "100vh", padding: "20px", color: "#e0f2fe"
     }}>
-      <div style={{ width: "100%", maxWidth: "1100px" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
         {/* Nom du Personnage */}
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
@@ -86,17 +133,19 @@ function AppContent() {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* ==================== MODALS ==================== */}
       <SummoningModal 
         isOpen={isSummoningOpen}
         onClose={() => setIsSummoningOpen(false)}
         addSpirit={addSpirit}
-        update={update}           // ← Ajouté ici pour éviter l'erreur
+        update={update}
       />
-      
+
       <SpiritsModal 
         isOpen={isSpiritsOpen}
         onClose={() => setIsSpiritsOpen(false)}
+        activeSpirits={char.activeSpirits || []}
+        update={update}
         onViewSpirit={openSpiritSheet}
       />
 
@@ -109,13 +158,5 @@ function AppContent() {
         spirit={selectedSpirit}
       />
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <CharacterProvider>
-      <AppContent />
-    </CharacterProvider>
   );
 }

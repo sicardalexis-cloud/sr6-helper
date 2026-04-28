@@ -11,7 +11,7 @@ export default function EdgePool({ char, update }: Props) {
   const max = char.edge?.max ?? 7;
 
   const toggleEdge = (index: number) => {
-    update((draft) => {
+    update((draft: any) => {
       if (!draft.edge) draft.edge = { current: 0, max: 7 };
       
       if (index + 1 === draft.edge.current) {
@@ -55,16 +55,12 @@ export default function EdgePool({ char, update }: Props) {
               width: "46px",
               height: "46px",
               background: i < current ? "#eab308" : "transparent",
-              border: i < current 
-                ? "3px solid #facc15" 
-                : "2px solid #475569",
+              border: i < current ? "3px solid #facc15" : "2px solid #475569",
               borderRadius: "8px",
               transform: "rotate(45deg)",
               cursor: "pointer",
-              transition: "all 0.2s ease",
-              boxShadow: i < current 
-                ? "0 0 18px #facc15" 
-                : "none",
+              transition: "all 0.2s",
+              boxShadow: i < current ? "0 0 18px #facc15" : "none",
             }}
           />
         ))}

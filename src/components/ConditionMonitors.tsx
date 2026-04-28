@@ -63,27 +63,20 @@ export default function ConditionMonitors({ char, update }: Props) {
       border: "1px solid #334155",
       position: "relative"
     }}>
-      {/* Titre centré + Dice Pools en haut à droite */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
-        <div style={{ flex: 1 }}></div>
-        
         <h3 style={{ 
           color: "#67e8f9", 
           margin: 0, 
           fontSize: "1.45rem",
-          letterSpacing: "2px",
-          textAlign: "center"
+          letterSpacing: "2px"
         }}>
           CONDITION MONITORS
         </h3>
 
-        {/* Dice Pools en haut à droite */}
         <div style={{ 
           color: totalPenalty > 0 ? "#ef4444" : "#4ade80", 
           fontWeight: "bold", 
-          fontSize: "1.1rem",
-          flex: 1,
-          textAlign: "right"
+          fontSize: "1.1rem"
         }}>
           dice pools {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
         </div>

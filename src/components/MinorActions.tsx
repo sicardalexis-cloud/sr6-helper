@@ -11,7 +11,7 @@ export default function MinorActions({ char, update }: Props) {
   const max = char.minorActions?.max ?? 3;
 
   const changeMax = (delta: number) => {
-    update((draft) => {
+    update((draft: any) => {
       if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
       const newMax = Math.max(1, Math.min(8, draft.minorActions.max + delta));
       draft.minorActions.max = newMax;
@@ -22,7 +22,7 @@ export default function MinorActions({ char, update }: Props) {
   };
 
   const toggleCircle = (index: number) => {
-    update((draft) => {
+    update((draft: any) => {
       if (!draft.minorActions) draft.minorActions = { current: 1, max: 3 };
       draft.minorActions.current = index + 1 === draft.minorActions.current ? index : index + 1;
     });
@@ -37,22 +37,17 @@ export default function MinorActions({ char, update }: Props) {
       border: "1px solid #334155",
       position: "relative"
     }}>
-      {/* Titre centré + Boutons en haut à droite */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
-        <div style={{ flex: 1 }}></div> {/* Espace à gauche pour centrer le titre */}
-
         <h3 style={{ 
           color: "#67e8f9", 
           margin: 0, 
           fontSize: "1.45rem",
-          letterSpacing: "2px",
-          textAlign: "center"
+          letterSpacing: "2px"
         }}>
           MINOR ACTIONS
         </h3>
 
-        {/* Boutons + et - */}
-        <div style={{ display: "flex", gap: "8px", flex: 1, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: "8px" }}>
           <button
             onClick={() => changeMax(-1)}
             style={{
@@ -64,10 +59,7 @@ export default function MinorActions({ char, update }: Props) {
               borderRadius: "50%",
               fontSize: "1.5rem",
               fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
+              cursor: "pointer"
             }}
           >
             −
@@ -83,10 +75,7 @@ export default function MinorActions({ char, update }: Props) {
               borderRadius: "50%",
               fontSize: "1.5rem",
               fontWeight: "bold",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center"
+              cursor: "pointer"
             }}
           >
             +
@@ -94,7 +83,7 @@ export default function MinorActions({ char, update }: Props) {
         </div>
       </div>
 
-      {/* Cercles cliquables */}
+      {/* Cercles */}
       <div style={{ display: "flex", justifyContent: "center", gap: "14px" }}>
         {Array.from({ length: max }).map((_, i) => (
           <div
