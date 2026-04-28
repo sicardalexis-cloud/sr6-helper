@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { SPIRIT_TYPES } from "../data/spirits";
 
+const SUMMON_SETTINGS_KEY = 'summoning-settings';
+
 interface SummoningResult {
   netHits: number;
   drainTotal: number;
@@ -19,7 +21,9 @@ interface Props {
 }
 
 export default function SummoningModal({ isOpen, onClose, addSpirit, update }: Props) {
+  // ==================== STATES ====================
   const [selectedSpiritType, setSelectedSpiritType] = useState("fire");
+
   const [force, setForce] = useState(4);
   const [conjuringPool, setConjuringPool] = useState(8);
   const [drainResistancePool, setDrainResistancePool] = useState(6);
@@ -32,7 +36,35 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const [isRolling, setIsRolling] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
-  // Reset quand on ferme le modal (pour pouvoir invoquer plusieurs esprits d'affilée)
+  // ==================== PERSISTENCE DES SLIDERS ====================
+  useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem(SUMMON_SETTINGS_KEY);
+      if (saved) {
+        try {
+          const settings = JSON.parse(saved);
+          setForce(settings.force ?? 4);
+          setConjuringPool(settings.conjuringPool ?? 8);
+          setDrainResistancePool(settings.drainResistancePool ?? 6);
+          setAutoRetry(settings.autoRetry ?? false);
+          setMaxAttempts(settings.maxAttempts ?? 3);
+          setDrainThreshold(settings.drainThreshold ?? 8);
+        } catch (e) {}
+      }
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const settings = {
+        force, conjuringPool, drainResistancePool,
+        autoRetry, maxAttempts, drainThreshold
+      };
+      localStorage.setItem(SUMMON_SETTINGS_KEY, JSON.stringify(settings));
+    }
+  }, [force, conjuringPool, drainResistancePool, autoRetry, maxAttempts, drainThreshold, isOpen]);
+
+  // Reset à la fermeture
   useEffect(() => {
     if (!isOpen) {
       setResult(null);
@@ -93,7 +125,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     if (!result || confirmed) return;
     setConfirmed(true);
 
-    onClose(); // fermeture immédiate (fix Pixel 8)
+    onClose();
 
     setTimeout(() => {
       if (result.drainTotal > 0) {
@@ -185,7 +217,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           ))}
         </div>
 
-        {/* Sliders + Auto Retry + Bouton Lancer (identique) */}
+        {/* Sliders (persistants) */}
         <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
           <div>
             <label>Force de l'esprit : <strong>{force}</strong></label>
@@ -201,6 +233,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           </div>
         </div>
 
+        {/* Auto Retry */}
         <div style={{ marginBottom: "16px" }}>
           <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
             <input type="checkbox" checked={autoRetry} onChange={e => setAutoRetry(e.target.checked)} />
@@ -217,7 +250,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
             <div style={{ flex: 1 }}>
               <label>Seuil de drain max : <strong>{drainThreshold}</strong></label>
               <input type="range" min="2" max="12" value={drainThreshold} onChange={e => setDrainThreshold(Number(e.target.value))} style={{ width: "100%" }} />
-            </div> 
+            </div>
           </div>
         )}
 
