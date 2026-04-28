@@ -79,34 +79,38 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     trySummon();
   };
 
+  // ==================== SOLUTION 1 : FERMETURE PROPRE (fix Pixel 8) ====================
   const confirmSummoning = () => {
     if (!result) return;
 
-    // Appliquer le drain
-    if (result.drainTotal > 0) {
-      update((draft: any) => {
-        draft.drainStun = (draft.drainStun || 0) + result.drainTotal;
-      });
-    }
+    const drainToApply = result.drainTotal;
+    const netHits = result.netHits;
 
-    // Ajouter l'esprit en cas de succès
-    if (result.netHits >= 1) {
-      addSpirit({
-        element: selectedSpiritType,
-        force: force,
-        servicesRemaining: result.netHits,
-        conditionDamage: 0,
-        invocationDate: new Date().toLocaleDateString("fr-FR"),
-        solarPhase: "Day",
-        solarTokens: 2,
-      });
-    }
+    // 1. Fermeture immédiate du modal
+    onClose();
 
-    // Reset + fermeture sécurisée (fix Pixel 8)
-    setResult(null);
+    // 2. Application des modifications APRÈS la fermeture
     setTimeout(() => {
-      onClose();
-    }, 10); // petit délai pour laisser React terminer le rendu
+      if (drainToApply > 0) {
+        update((draft: any) => {
+          draft.drainStun = (draft.drainStun || 0) + drainToApply;
+        });
+      }
+
+      if (netHits >= 1) {
+        addSpirit({
+          element: selectedSpiritType,
+          force: force,
+          servicesRemaining: netHits,
+          conditionDamage: 0,
+          invocationDate: new Date().toLocaleDateString("fr-FR"),
+          solarPhase: "Day",
+          solarTokens: 2,
+        });
+      }
+
+      setResult(null);
+    }, 20);
   };
 
   const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
@@ -152,10 +156,10 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         borderRadius: "16px",
         border: "2px solid #c084fc",
         padding: "20px",
-        maxHeight: "100svh",                    // ← changé pour svh (meilleur sur Android)
+        maxHeight: "100svh",
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
-        overscrollBehavior: "contain",          // ← empêche le scroll bizarre Android
+        overscrollBehavior: "contain",
         boxShadow: "0 0 30px rgba(103, 232, 249, 0.3)",
       }}>
         
@@ -163,9 +167,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
-
-        {/* Le reste du contenu est IDENTIQUE à ta version précédente */}
-        {/* Choix du type d'esprit, sliders, auto retry, bouton lancer, résultats, etc. */}
 
         {/* Choix du type d'esprit */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))", gap: "10px", marginBottom: "20px" }}>
