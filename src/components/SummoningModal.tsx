@@ -56,28 +56,10 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     trySummon();
   };
 
-  const confirmSummoning = () => {
-    if (!result || confirmed) return;
-    setConfirmed(true);
-
-    // Mise à jour des données
-    if (result.drainTotal > 0) {
-      update((draft: any) => {
-        draft.drainStun = (draft.drainStun || 0) + result.drainTotal;
-      });
-    }
-
-    if (result.netHits >= 1) {
-      addSpirit({
-        element: selectedSpiritType,
-        force: force,
-        servicesRemaining: result.netHits,
-        conditionDamage: 0,
-        invocationDate: new Date().toLocaleDateString("fr-FR"),
-        solarPhase: "Day",
-        solarTokens: 2,
-      });
-    }
+    const confirmSummoning = () => {
+    console.log("✅ ConfirmSummoning appelé - TEST DIAGNOSTIC");
+    // On ne fait RIEN d'autre pour le test
+    onClose();
   };
 
   if (!isOpen) return null;
