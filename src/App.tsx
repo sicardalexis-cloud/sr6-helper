@@ -91,7 +91,7 @@ function AppContent() {
         isOpen={isSummoningOpen}
         onClose={() => setIsSummoningOpen(false)}
         addSpirit={addSpirit}
-        update={update}           // ← important si tu utilises update aussi
+        update={update}           // ← Ajouté ici pour éviter l'erreur
       />
       
       <SpiritsModal 
