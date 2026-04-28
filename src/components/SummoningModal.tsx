@@ -136,7 +136,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
-      <div style={{ background: "#0f172a", width: "100%", maxWidth: "720px", borderRadius: "16px", border: "2px solid #c084fc", padding: "20px", maxHeight: "92vh", overflow: "auto" }}>
+      <div style={{ background: "#0f172a", width: "100%", maxWidth: "720px", borderRadius: "16px", border: "2px solid #c084fc", padding: "20px", maxHeight: "92dvh", overflow: "auto" , WebkitOverflowScrolling: "touch",}}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
