@@ -1,91 +1,119 @@
+// src/components/SpiritsModal.tsx
 import React from "react";
-import { useCharacterContext, SummonedSpirit } from "../contexts/CharacterContext";
+
+interface ActiveSpirit {
+  id: string;
+  element: string;
+  force: number;
+  servicesRemaining: number;
+  conditionDamage: number;
+  invocationDate: string;
+  solarPhase: "Day" | "Night";
+  solarTokens: number;
+}
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onViewSpirit: (spiritId: string) => void;
+  activeSpirits?: ActiveSpirit[];
+  update: (fn: (draft: any) => void) => void;
+  onViewSpirit: (spirit: ActiveSpirit) => void;
 }
 
-export default function SpiritsModal({ isOpen, onClose, onViewSpirit }: Props) {
-  const { char, updateSpirit, removeSpirit, advanceSolarPhase } = useCharacterContext();
-  const activeSpirits: SummonedSpirit[] = char.activeSpirits || [];
+export default function SpiritsModal({ 
+  isOpen, 
+  onClose, 
+  activeSpirits: rawSpirits = [], 
+  update, 
+  onViewSpirit 
+}: Props) {
+
+  const activeSpirits = Array.isArray(rawSpirits) ? rawSpirits : [];
 
   if (!isOpen) return null;
 
-  const changeServices = (id: string, delta: number) => {
-    updateSpirit(id, {
-      servicesRemaining: Math.max(0, Math.min(12, 
-        (activeSpirits.find(s => s.id === id)?.servicesRemaining || 0) + delta
-      ))
-    });
-  };
-
-  const changeCondition = (id: string, newDamage: number) => {
-    updateSpirit(id, { 
-      conditionDamage: Math.max(0, Math.min(20, newDamage)) 
+  const updateSpirit = (id: string, updates: Partial<ActiveSpirit>) => {
+    update((draft: any) => {
+      if (!draft.activeSpirits) return;
+      const index = draft.activeSpirits.findIndex((s: ActiveSpirit) => s.id === id);
+      if (index !== -1) {
+        draft.activeSpirits[index] = { ...draft.activeSpirits[index], ...updates };
+      }
     });
   };
 
   const deleteSpirit = (id: string) => {
     if (confirm("Supprimer cet esprit ?")) {
-      removeSpirit(id);
+      update((draft: any) => {
+        if (!draft.activeSpirits) return;
+        draft.activeSpirits = draft.activeSpirits.filter((s: ActiveSpirit) => s.id !== id);
+      });
     }
   };
 
+  const advanceSolarPhase = () => {
+    update((draft: any) => {
+      if (!draft.activeSpirits || !Array.isArray(draft.activeSpirits)) return;
+
+      draft.activeSpirits = draft.activeSpirits
+        .map((spirit: ActiveSpirit) => ({           // ← corrigé
+          ...spirit,
+          solarTokens: Math.max(0, spirit.solarTokens - 1)
+        }))
+        .filter((spirit: ActiveSpirit) => spirit.solarTokens > 0);  // ← corrigé
+    });
+  };
+
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ background: "#0f172a", width: "94%", maxWidth: "720px", borderRadius: "16px", padding: "20px", border: "2px solid #c084fc", maxHeight: "90vh", overflow: "auto" }}>
+    <div style={{ 
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000,
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "10px"
+    }}>
+      <div style={{ 
+        background: "#0f172a", width: "100%", maxWidth: "720px", borderRadius: "16px",
+        border: "2px solid #c084fc", padding: "20px", maxHeight: "90vh", overflow: "auto"
+      }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#c084fc", margin: 0 }}>
-            ACTIVE SPIRITS ({activeSpirits.length})
-          </h2>
-          <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
+          <h2 style={{ color: "#c084fc", margin: 0 }}>ACTIVE SPIRITS ({activeSpirits.length})</h2>
+          <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8", cursor: "pointer" }}>✕</button>
         </div>
 
         {activeSpirits.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "80px 20px", color: "#94a3b8" }}>
-            Aucun esprit invoqué pour le moment.
-          </div>
+          <div style={{ textAlign: "center", padding: "100px 20px", color: "#94a3b8" }}>Aucun esprit invoqué pour le moment</div>
         ) : (
           activeSpirits.map((spirit) => {
             const maxCM = 8 + Math.ceil(spirit.force / 2);
-
             return (
-              <div key={spirit.id} style={{ background: "#1e2937", padding: "18px", borderRadius: "12px", marginBottom: "16px" }}>
+              <div key={spirit.id} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                   <div>
-                    <strong style={{ color: "#c084fc", fontSize: "1.35rem" }}>{spirit.element}</strong>{" "}
+                    <strong style={{ color: "#c084fc", fontSize: "1.4rem" }}>{spirit.element}</strong>{" "}
                     <span style={{ color: "#67e8f9" }}>Force {spirit.force}</span>
                   </div>
-                  <button 
-                    onClick={() => onViewSpirit(spirit.id)}
-                    style={{ padding: "8px 16px", background: "#4f46e5", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}
-                  >
+                  <button onClick={() => onViewSpirit(spirit)} style={{ padding: "8px 16px", background: "#4f46e5", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
                     Fiche Détail
                   </button>
                 </div>
 
-                <div style={{ color: "#94a3b8", marginBottom: "12px" }}>
-                  Services: <strong>{spirit.servicesRemaining}</strong> | 
-                  Solar Tokens: <strong>{spirit.solarTokens}/2</strong>
+                <div style={{ display: "flex", gap: "20px", marginBottom: "12px", color: "#94a3b8" }}>
+                  <div>Services : <strong>{spirit.servicesRemaining}</strong></div>
+                  <div>Solar Tokens : <strong>{spirit.solarTokens}/2</strong></div>
                 </div>
 
-                {/* Condition Monitor */}
                 <div style={{ marginBottom: "12px" }}>
                   <div style={{ color: "#94a3b8", marginBottom: "6px" }}>Condition Monitor</div>
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                     {Array.from({ length: maxCM }).map((_, i) => (
                       <div
                         key={i}
-                        onClick={() => changeCondition(spirit.id, i + 1 === spirit.conditionDamage ? 0 : i + 1)}
+                        onClick={() => {
+                          const newDamage = i + 1 === spirit.conditionDamage ? Math.max(0, spirit.conditionDamage - 1) : i + 1;
+                          updateSpirit(spirit.id, { conditionDamage: newDamage });
+                        }}
                         style={{
-                          width: "32px",
-                          height: "32px",
-                          border: "2px solid #475569",
-                          borderRadius: "6px",
-                          background: i < (spirit.conditionDamage || 0) ? "#ef4444" : "#1e2937",
+                          width: "28px", height: "28px", border: "2px solid #475569",
+                          borderRadius: "6px", background: i < spirit.conditionDamage ? "#ef4444" : "#1e2937",
                           cursor: "pointer"
                         }}
                       />
@@ -93,34 +121,28 @@ export default function SpiritsModal({ isOpen, onClose, onViewSpirit }: Props) {
                   </div>
                 </div>
 
-                {/* Boutons d'action */}
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <button onClick={() => changeServices(spirit.id, 1)} style={{ flex: 1, padding: "10px", background: "#22c55e", color: "#000", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
-                    + Service
-                  </button>
-                  <button onClick={() => changeServices(spirit.id, -1)} style={{ flex: 1, padding: "10px", background: "#eab308", color: "#000", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
-                    - Service
-                  </button>
-                  <button onClick={() => deleteSpirit(spirit.id)} style={{ padding: "10px 16px", background: "#ef4444", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>
-                    Supprimer
-                  </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.max(0, spirit.servicesRemaining - 1) })} style={{ flex: 1, padding: "8px", background: "#334155", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>− Service</button>
+                  <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.min(12, spirit.servicesRemaining + 1) })} style={{ flex: 1, padding: "8px", background: "#334155", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>+ Service</button>
+                  <button onClick={() => deleteSpirit(spirit.id)} style={{ padding: "8px 16px", background: "#ef4444", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>Supprimer</button>
                 </div>
               </div>
             );
           })
         )}
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
+        {activeSpirits.length > 0 && (
           <button 
-            onClick={advanceSolarPhase} 
-            style={{ flex: 1, padding: "14px", background: "#8b5cf6", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" }}
+            onClick={advanceSolarPhase}
+            style={{ width: "100%", padding: "14px", marginTop: "16px", background: "#334155", color: "#94a3b8", border: "none", borderRadius: "8px", fontWeight: "bold" }}
           >
             Avancer Phase Solaire
           </button>
-          <button onClick={onClose} style={{ flex: 1, padding: "14px", background: "#64748b", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" }}>
-            Fermer
-          </button>
-        </div>
+        )}
+
+        <button onClick={onClose} style={{ width: "100%", padding: "14px", marginTop: "12px", background: "#64748b", color: "white", border: "none", borderRadius: "8px", fontWeight: "bold" }}>
+          Fermer
+        </button>
       </div>
     </div>
   );

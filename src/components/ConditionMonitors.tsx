@@ -1,9 +1,12 @@
+// src/components/ConditionMonitors.tsx
 import React from "react";
-import { useCharacterContext } from "../contexts/CharacterContext";
 
-export default function ConditionMonitors() {
-  const { char, update } = useCharacterContext();
+interface Props {
+  char: any;
+  update: (fn: (draft: any) => void) => void;
+}
 
+export default function ConditionMonitors({ char, update }: Props) {
   const bod = char.attributes?.BOD ?? 3;
   const wil = char.attributes?.WIL ?? 3;
 
@@ -31,19 +34,20 @@ export default function ConditionMonitors() {
     });
   };
 
-  const renderBoxes = (current: number, max: number, color: string, type?: "physical" | "normalStun" | "drainStun") => (
+  const renderBoxes = (current: number, max: number, color: string, type?: string) => (
     <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "flex-start" }}>
       {Array.from({ length: max }).map((_, i) => (
         <div
           key={i}
-          onClick={() => type && handleClick(type, i)}
+          onClick={() => type && handleClick(type as any, i)}
           style={{
-            width: "32px",
-            height: "32px",
+            width: "28px",
+            height: "28px",
             border: "2px solid #475569",
             borderRadius: "6px",
             background: i < current ? color : "#1e2937",
-            cursor: "pointer"
+            cursor: "pointer",
+            transition: "all 0.1s"
           }}
         />
       ))}
@@ -51,45 +55,57 @@ export default function ConditionMonitors() {
   );
 
   return (
-    <div style={{ padding: "16px", background: "#1e2937", borderRadius: "12px", marginBottom: "16px" }}>
-      <h3 style={{ color: "#c084fc", marginBottom: "12px" }}>CONDITION MONITORS</h3>
+    <div style={{
+      background: "#1e2937",
+      borderRadius: "12px",
+      padding: "20px",
+      marginBottom: "20px",
+      border: "1px solid #334155",
+      position: "relative"
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
+        <h3 style={{ 
+          color: "#67e8f9", 
+          margin: 0, 
+          fontSize: "1.45rem",
+          letterSpacing: "2px"
+        }}>
+          CONDITION MONITORS
+        </h3>
 
-      <div style={{ marginBottom: "16px", fontWeight: "bold", fontSize: "1.25rem" }}>
-        MALUS DE DÉS : <span style={{ color: totalPenalty > 0 ? "#ef4444" : "#4ade80" }}>
-          {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
-        </span>
+        <div style={{ 
+          color: totalPenalty > 0 ? "#ef4444" : "#4ade80", 
+          fontWeight: "bold", 
+          fontSize: "1.1rem"
+        }}>
+          dice pools {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
+        </div>
       </div>
 
-      {/* PHYSICAL */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
-        <div style={{ color: "#ef4444", fontWeight: "bold", width: "110px", textAlign: "right" }}>
-          PHYSICAL
+      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* PHYSICAL */}
+        <div>
+          <div style={{ color: "#ef4444", fontWeight: "bold", marginBottom: "8px" }}>PHYSICAL</div>
+          {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
         </div>
-        {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
-      </div>
 
-      {/* NORMAL STUN */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
-        <div style={{ color: "#eab308", fontWeight: "bold", width: "110px", textAlign: "right" }}>
-          STUN
+        {/* STUN */}
+        <div>
+          <div style={{ color: "#eab308", fontWeight: "bold", marginBottom: "8px" }}>STUN</div>
+          {renderBoxes(normalStun, stunMax, "#eab308", "normalStun")}
         </div>
-        {renderBoxes(normalStun, stunMax, "#eab308", "normalStun")}
-      </div>
 
-      {/* DRAIN STUN */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "12px" }}>
-        <div style={{ color: "#a855f7", fontWeight: "bold", width: "110px", textAlign: "right" }}>
-          DRAIN STUN
+        {/* DRAIN STUN */}
+        <div>
+          <div style={{ color: "#a855f7", fontWeight: "bold", marginBottom: "8px" }}>DRAIN STUN</div>
+          {renderBoxes(drainStun, stunMax, "#a855f7", "drainStun")}
         </div>
-        {renderBoxes(drainStun, stunMax, "#a855f7", "drainStun")}
-      </div>
 
-      {/* TOTAL STUN */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <div style={{ color: "#facc15", fontWeight: "bold", width: "110px", textAlign: "right" }}>
-          TOTAL STUN
+        {/* TOTAL STUN */}
+        <div>
+          <div style={{ color: "#facc15", fontWeight: "bold", marginBottom: "8px" }}>TOTAL STUN</div>
+          {renderBoxes(totalStun, stunMax, "#facc15")}
         </div>
-        {renderBoxes(totalStun, stunMax, "#facc15")}
       </div>
     </div>
   );
