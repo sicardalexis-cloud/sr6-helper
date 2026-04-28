@@ -79,38 +79,31 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     trySummon();
   };
 
-  // ==================== SOLUTION 1 : FERMETURE PROPRE (fix Pixel 8) ====================
   const confirmSummoning = () => {
     if (!result) return;
 
-    const drainToApply = result.drainTotal;
-    const netHits = result.netHits;
+    // 1. Mise à jour des données D'ABORD
+    if (result.drainTotal > 0) {
+      update((draft: any) => {
+        draft.drainStun = (draft.drainStun || 0) + result.drainTotal;
+      });
+    }
 
-    // 1. Fermeture immédiate du modal
-    onClose();
+    if (result.netHits >= 1) {
+      addSpirit({
+        element: selectedSpiritType,
+        force: force,
+        servicesRemaining: result.netHits,
+        conditionDamage: 0,
+        invocationDate: new Date().toLocaleDateString("fr-FR"),
+        solarPhase: "Day",
+        solarTokens: 2,
+      });
+    }
 
-    // 2. Application des modifications APRÈS la fermeture
-    setTimeout(() => {
-      if (drainToApply > 0) {
-        update((draft: any) => {
-          draft.drainStun = (draft.drainStun || 0) + drainToApply;
-        });
-      }
-
-      if (netHits >= 1) {
-        addSpirit({
-          element: selectedSpiritType,
-          force: force,
-          servicesRemaining: netHits,
-          conditionDamage: 0,
-          invocationDate: new Date().toLocaleDateString("fr-FR"),
-          solarPhase: "Day",
-          solarTokens: 2,
-        });
-      }
-
-      setResult(null);
-    }, 20);
+    // 2. Fermeture du modal APRÈS
+    setResult(null);
+    setTimeout(() => onClose(), 30);
   };
 
   const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
@@ -155,7 +148,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         maxWidth: "720px",
         borderRadius: "16px",
         border: "2px solid #c084fc",
-        padding: "20px",
+        padding: "24px",
         maxHeight: "100svh",
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
@@ -163,13 +156,13 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         boxShadow: "0 0 30px rgba(103, 232, 249, 0.3)",
       }}>
         
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
 
         {/* Choix du type d'esprit */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))", gap: "10px", marginBottom: "20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))", gap: "10px", marginBottom: "24px" }}>
           {SPIRIT_TYPES.map((spirit) => (
             <div
               key={spirit.type}
@@ -190,17 +183,17 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         </div>
 
         {/* Sliders */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
           <div>
-            <label>Force de l'esprit : <strong>{force}</strong></label>
+            <label style={{ display: "block", marginBottom: "4px" }}>Force de l'esprit : <strong>{force}</strong></label>
             <input type="range" min="1" max="8" value={force} onChange={e => setForce(Number(e.target.value))} style={{ width: "100%" }} />
           </div>
           <div>
-            <label>Pool d'Invocation : <strong>{conjuringPool}</strong></label>
+            <label style={{ display: "block", marginBottom: "4px" }}>Pool d'Invocation : <strong>{conjuringPool}</strong></label>
             <input type="range" min="2" max="18" value={conjuringPool} onChange={e => setConjuringPool(Number(e.target.value))} style={{ width: "100%" }} />
           </div>
           <div>
-            <label>Pool de Résistance au Drain : <strong>{drainResistancePool}</strong></label>
+            <label style={{ display: "block", marginBottom: "4px" }}>Pool de Résistance au Drain : <strong>{drainResistancePool}</strong></label>
             <input type="range" min="2" max="18" value={drainResistancePool} onChange={e => setDrainResistancePool(Number(e.target.value))} style={{ width: "100%" }} />
           </div>
         </div>
@@ -214,7 +207,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         </div>
 
         {autoRetry && (
-          <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", gap: "20px", marginBottom: "24px" }}>
             <div style={{ flex: 1 }}>
               <label>Essais max : <strong>{maxAttempts}</strong></label>
               <input type="range" min="2" max="8" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
@@ -236,7 +229,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
         {/* Résultats */}
         {result && (
-          <div style={{ background: "#1e2937", padding: "20px", borderRadius: "12px" }}>
+          <div style={{ background: "#1e2937", padding: "20px", borderRadius: "12px", marginBottom: "20px" }}>
             <h3 style={{ color: "#67e8f9", textAlign: "center", marginBottom: "16px" }}>
               {result.attempts} tentative{result.attempts > 1 ? "s" : ""}
             </h3>
@@ -258,13 +251,24 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         {result && (
           <button 
             onClick={confirmSummoning}
-            style={{ width: "100%", padding: "16px", marginTop: "20px", background: "#c084fc", color: "#000", fontWeight: "bold", border: "none", borderRadius: "10px" }}
+            style={{ width: "100%", padding: "16px", marginBottom: "12px", background: "#c084fc", color: "#000", fontWeight: "bold", border: "none", borderRadius: "10px" }}
           >
             Confirmer l'invocation ({result.netHits} services)
           </button>
         )}
 
-        <button onClick={onClose} style={{ width: "100%", padding: "14px", marginTop: "12px", background: "#64748b", color: "white", border: "none", borderRadius: "10px" }}>
+        <button 
+          onClick={onClose} 
+          style={{ 
+            width: "100%", 
+            padding: "14px", 
+            background: "#334155", 
+            color: "white", 
+            border: "none", 
+            borderRadius: "10px",
+            fontWeight: "500"
+          }}
+        >
           Fermer
         </button>
       </div>
