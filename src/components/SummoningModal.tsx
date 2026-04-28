@@ -63,7 +63,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         drainRolls: drainRoll,
       };
 
-      // === ARRÊT IMMÉDIAT DÈS QUE ÇA RÉUSSIT ===
       if (netHits >= 1 || attemptsDone >= maxAttempts || totalDrain >= drainThreshold) {
         finalResult = currentResult;
         setResult(currentResult);
@@ -71,7 +70,6 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         return;
       }
 
-      // Sinon on continue uniquement si autoRetry est activé
       if (autoRetry) {
         setTimeout(trySummon, 420);
       } else {
@@ -106,8 +104,9 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       });
     }
 
-    // Reset
+    // Reset + fermeture du modal
     setResult(null);
+    onClose();                    // ← FIX PRINCIPAL
   };
 
   const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
@@ -135,8 +134,29 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   if (!isOpen) return null;
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px" }}>
-      <div style={{ background: "#0f172a", width: "100%", maxWidth: "720px", borderRadius: "16px", border: "2px solid #c084fc", padding: "20px", maxHeight: "92dvh", overflow: "auto" , WebkitOverflowScrolling: "touch",}}>
+    <div style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.95)",
+      zIndex: 1000,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "10px",
+      touchAction: "manipulation"
+    }}>
+      <div style={{
+        background: "#0f172a",
+        width: "100%",
+        maxWidth: "720px",
+        borderRadius: "16px",
+        border: "2px solid #c084fc",
+        padding: "20px",
+        maxHeight: "100dvh",                    // ← plus fiable sur mobile
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",       // ← crucial iOS
+        boxShadow: "0 0 30px rgba(103, 232, 249, 0.3)",
+      }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
