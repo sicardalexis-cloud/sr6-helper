@@ -1,5 +1,5 @@
 // src/components/SummoningModal.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SPIRIT_TYPES } from "../data/spirits";
 
 interface SummoningResult {
@@ -31,6 +31,15 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const [result, setResult] = useState<SummoningResult | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  // Reset quand on ferme le modal (pour pouvoir invoquer plusieurs esprits d'affilée)
+  useEffect(() => {
+    if (!isOpen) {
+      setResult(null);
+      setConfirmed(false);
+      setIsRolling(false);
+    }
+  }, [isOpen]);
 
   const rollDice = (pool: number): number[] => 
     Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
@@ -80,15 +89,12 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
     trySummon();
   };
 
-  // ==================== FIX PIXEL 8 ====================
   const confirmSummoning = () => {
     if (!result || confirmed) return;
     setConfirmed(true);
 
-    // FERMETURE IMMÉDIATE (ce qui marche sur ton Pixel 8)
-    onClose();
+    onClose(); // fermeture immédiate (fix Pixel 8)
 
-    // Mises à jour APRÈS la fermeture du modal
     setTimeout(() => {
       if (result.drainTotal > 0) {
         update((draft: any) => {
@@ -179,8 +185,41 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
           ))}
         </div>
 
-        {/* Sliders + Auto Retry + Bouton Lancer (identique à avant) */}
-        {/* ... (garde tout le reste de ton code précédent pour les sliders et auto-retry) ... */}
+        {/* Sliders + Auto Retry + Bouton Lancer (identique) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
+          <div>
+            <label>Force de l'esprit : <strong>{force}</strong></label>
+            <input type="range" min="1" max="8" value={force} onChange={e => setForce(Number(e.target.value))} style={{ width: "100%" }} />
+          </div>
+          <div>
+            <label>Pool d'Invocation : <strong>{conjuringPool}</strong></label>
+            <input type="range" min="2" max="18" value={conjuringPool} onChange={e => setConjuringPool(Number(e.target.value))} style={{ width: "100%" }} />
+          </div>
+          <div>
+            <label>Pool de Résistance au Drain : <strong>{drainResistancePool}</strong></label>
+            <input type="range" min="2" max="18" value={drainResistancePool} onChange={e => setDrainResistancePool(Number(e.target.value))} style={{ width: "100%" }} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: "16px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+            <input type="checkbox" checked={autoRetry} onChange={e => setAutoRetry(e.target.checked)} />
+            <span>Activer le retry automatique</span>
+          </label>
+        </div>
+
+        {autoRetry && (
+          <div style={{ display: "flex", gap: "20px", marginBottom: "24px" }}>
+            <div style={{ flex: 1 }}>
+              <label>Essais max : <strong>{maxAttempts}</strong></label>
+              <input type="range" min="2" max="8" value={maxAttempts} onChange={e => setMaxAttempts(Number(e.target.value))} style={{ width: "100%" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>Seuil de drain max : <strong>{drainThreshold}</strong></label>
+              <input type="range" min="2" max="12" value={drainThreshold} onChange={e => setDrainThreshold(Number(e.target.value))} style={{ width: "100%" }} />
+            </div>
+          </div>
+        )}
 
         <button 
           onClick={performSummoning}
@@ -221,7 +260,7 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         )}
 
         {confirmed && (
-          <div style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px", textAlign: "center" }}>
+          <div style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px", textAlign: "center", marginBottom: "12px" }}>
             ✅ Esprit ajouté avec succès !
           </div>
         )}
