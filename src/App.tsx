@@ -1,5 +1,5 @@
+// src/App.tsx
 import React, { useState } from "react";
-import "./styles.css";
 import { CharacterProvider, useCharacterContext } from "./contexts/CharacterContext";
 
 import AttributesPanel from "./components/AttributesPanel";
@@ -13,56 +13,79 @@ import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 
 function AppContent() {
-  const { char } = useCharacterContext();
+  const { char, update } = useCharacterContext();
 
   const [isSummoningOpen, setIsSummoningOpen] = useState(false);
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
-  const openSpiritSheet = (spiritId: string) => {
-    const spirit = char.activeSpirits?.find((s: any) => s.id === spiritId);
-    if (spirit) {
-      setSelectedSpirit(spirit);
-      setIsSpiritSheetOpen(true);
-    }
+  const openSpiritSheet = (spirit: any) => {
+    setSelectedSpirit(spirit);
+    setIsSpiritSheetOpen(true);
+  };
+
+  const updateName = (newName: string) => {
+    update((draft) => { draft.name = newName; });
   };
 
   return (
-    <div className="app-container">
-      <div className="character-card">
-        <div className="header">
-          <h1 className="char-name">KAGE</h1>
-          <div className="char-role">SHAMAN</div>
+    <div style={{
+      background: "radial-gradient(circle at center, #1a2333 0%, #0a0f1c 100%)",
+      minHeight: "100vh", 
+      padding: "20px",
+      display: "flex",
+      justifyContent: "center"
+    }}>
+      <div style={{ width: "100%", maxWidth: "1100px" }}>   {/* ← Limite la largeur */}
+
+        {/* Nom du Personnage */}
+        <div style={{ textAlign: "center", marginBottom: "25px" }}>
+          <input
+            type="text"
+            value={char.name || ""}
+            onChange={(e) => updateName(e.target.value)}
+            style={{
+              background: "rgba(15, 23, 42, 0.95)",
+              border: "2px solid #22ff88",
+              color: "#22ff88",
+              fontSize: "1.9rem",
+              fontWeight: "bold",
+              textAlign: "center",
+              padding: "10px 24px",
+              borderRadius: "10px",
+              width: "360px",
+              outline: "none",
+              boxShadow: "0 0 20px rgba(34, 255, 136, 0.4)"
+            }}
+            placeholder="Nom du Personnage"
+          />
         </div>
 
-        <AttributesPanel />
-        <EdgePool />
-        <MinorActions />
-        <ConditionMonitors />
+        {/* Contenu principal */}
+        <div style={{
+          background: "#111827",
+          border: "2px solid #22ff88",
+          borderRadius: "16px",
+          padding: "24px",
+          boxShadow: "0 0 40px rgba(34, 255, 136, 0.15)"
+        }}>
+          <AttributesPanel char={char} update={update} />
+          <EdgePool char={char} update={update} />
+          <MinorActions char={char} update={update} />
+          <ConditionMonitors char={char} update={update} />
 
-        <BottomSections 
-          onSummoningClick={() => setIsSummoningOpen(true)}
-          onSpiritsClick={() => setIsSpiritsOpen(true)}
-        />
+          <BottomSections 
+            onSummoningClick={() => setIsSummoningOpen(true)}
+            onSpiritsClick={() => setIsSpiritsOpen(true)}
+          />
+        </div>
       </div>
 
-      <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} />
-      
-      <SpiritsModal 
-        isOpen={isSpiritsOpen} 
-        onClose={() => setIsSpiritsOpen(false)} 
-        onViewSpirit={openSpiritSheet} 
-      />
-
-      <SpiritSheetModal 
-        isOpen={isSpiritSheetOpen}
-        onClose={() => {
-          setIsSpiritSheetOpen(false);
-          setSelectedSpirit(null);
-        }}
-        spirit={selectedSpirit}
-      />
+      {/* Modals */}
+      <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} addSpirit={char.addSpirit} applyDrain={char.applyDrain} />
+      <SpiritsModal isOpen={isSpiritsOpen} onClose={() => setIsSpiritsOpen(false)} onViewSpirit={openSpiritSheet} />
+      <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} />
     </div>
   );
 }
