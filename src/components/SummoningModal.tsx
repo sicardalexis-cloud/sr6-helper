@@ -39,17 +39,17 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       const drainDamage = Math.max(0, spiritHits - drainHits);
       totalDrain += drainDamage;
 
-      const currentResult = { netHits, drainTotal: totalDrain, attempts: attemptsDone };
+      const current = { netHits, drainTotal: totalDrain, attempts: attemptsDone };
 
       if (netHits >= 1 || attemptsDone >= maxAttempts || totalDrain >= drainThreshold) {
-        setResult(currentResult);
+        setResult(current);
         return;
       }
 
       if (autoRetry) {
         setTimeout(trySummon, 420);
       } else {
-        setResult(currentResult);
+        setResult(current);
       }
     };
 
@@ -100,13 +100,31 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         WebkitOverflowScrolling: "touch",
         overscrollBehavior: "contain",
       }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>INVOCATION D'ESPRIT</h2>
           <button onClick={onClose} style={{ fontSize: "1.8rem", background: "none", border: "none", color: "#94a3b8" }}>✕</button>
         </div>
 
-        {/* Choix esprit, sliders, etc. simplifiés pour test */}
-        {/* (le reste est gardé minimal pour voir si le bug disparaît) */}
+        {/* Choix esprit simplifié */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(70px, 1fr))", gap: "10px", marginBottom: "24px" }}>
+          {SPIRIT_TYPES.map((spirit) => (
+            <div
+              key={spirit.type}
+              onClick={() => setSelectedSpiritType(spirit.type)}
+              style={{
+                padding: "12px 8px",
+                border: selectedSpiritType === spirit.type ? `3px solid ${spirit.color}` : "2px solid #334155",
+                borderRadius: "10px",
+                textAlign: "center",
+                cursor: "pointer",
+                background: selectedSpiritType === spirit.type ? "#1e2937" : "transparent"
+              }}
+            >
+              <div style={{ fontSize: "2rem" }}>{spirit.emoji}</div>
+              <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>{spirit.label}</div>
+            </div>
+          ))}
+        </div>
 
         <button 
           onClick={performSummoning}
@@ -117,12 +135,12 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
 
         {result && (
           <div style={{ background: "#1e2937", padding: "20px", borderRadius: "12px", textAlign: "center", marginBottom: "20px" }}>
-            <h3 style={{ color: "#67e8f9" }}>Résultat</h3>
-            <p style={{ fontSize: "1.4rem" }}>
+            <h3 style={{ color: "#67e8f9" }}>Invocation terminée</h3>
+            <p style={{ fontSize: "1.5rem", margin: "12px 0" }}>
               Services : <strong style={{ color: "#22c55e" }}>{result.netHits}</strong>
             </p>
-            <p style={{ fontSize: "1.2rem", color: "#f87171" }}>
-              Drain : <strong>{result.drainTotal}</strong>
+            <p style={{ fontSize: "1.3rem", color: "#f87171" }}>
+              Drain total : <strong>{result.drainTotal}</strong>
             </p>
           </div>
         )}
@@ -132,17 +150,20 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
             onClick={confirmSummoning}
             style={{ width: "100%", padding: "16px", marginBottom: "12px", background: "#c084fc", color: "#000", fontWeight: "bold", border: "none", borderRadius: "10px" }}
           >
-            Confirmer l'invocation
+            ✅ Confirmer l'invocation
           </button>
         )}
 
         {confirmed && (
-          <div style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px", textAlign: "center" }}>
-            ✅ Esprit ajouté !
+          <div style={{ width: "100%", padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px", textAlign: "center", marginBottom: "12px" }}>
+            Esprit ajouté avec succès !
           </div>
         )}
 
-        <button onClick={onClose} style={{ width: "100%", padding: "14px", background: "#334155", color: "white", border: "none", borderRadius: "10px" }}>
+        <button 
+          onClick={onClose} 
+          style={{ width: "100%", padding: "14px", background: "#334155", color: "white", border: "none", borderRadius: "10px" }}
+        >
           Fermer
         </button>
       </div>
