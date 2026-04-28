@@ -134,7 +134,7 @@ export default function App() {
           <BottomSections 
             onSummoningClick={() => setIsSummoningOpen(true)}
             onSpiritsClick={() => setIsSpiritsOpen(true)}
-          /> 
+          />
         </div>
       </div>
 
