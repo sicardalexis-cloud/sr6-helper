@@ -19,7 +19,13 @@ export default function App() {
   const [char, setChar] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try {
+        const parsed = JSON.parse(saved);
+        // Migration automatique pour les anciennes sauvegardes
+        if (!parsed.statusEffects) parsed.statusEffects = [];
+        if (!parsed.activeSpirits) parsed.activeSpirits = [];
+        return parsed;
+      } catch (e) {}
     }
     return {
       name: "KAGE",
@@ -29,16 +35,17 @@ export default function App() {
       physical: 0,
       stun: 0,
       drainStun: 0,
-      activeSpirits: []
+      activeSpirits: [],
+      statusEffects: []          // ← AJOUTÉ
     };
   });
 
-  // Sauvegarde locale (optimisée pour éviter trop de re-renders)
+  // Sauvegarde automatique
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
 
-  // ==================== UPDATE STABLE (useCallback) ====================
+  // ==================== UPDATE FUNCTION (stable) ====================
   const update = useCallback((fn: (draft: any) => void) => {
     setChar((prev: any) => {
       const draft = { ...prev };
@@ -47,7 +54,7 @@ export default function App() {
     });
   }, []);
 
-  // ==================== ADD SPIRIT (stable + délai mobile) ====================
+  // ==================== FONCTIONS ESPRITS ====================
   const addSpirit = useCallback((spiritData: any) => {
     const newSpirit = {
       ...spiritData,
@@ -55,7 +62,7 @@ export default function App() {
       optionalPowers: [],
     };
 
-    // Petit délai pour laisser le modal se fermer complètement sur Android
+    // Petit délai pour éviter le bug écran noir sur mobile
     setTimeout(() => {
       update((draft) => {
         if (!draft.activeSpirits) draft.activeSpirits = [];
