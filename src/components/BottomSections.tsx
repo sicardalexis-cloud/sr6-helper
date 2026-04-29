@@ -5,12 +5,14 @@ interface Props {
   onSummoningClick: () => void;
   onSpiritsClick: () => void;
   onRestClick: () => void;
+  onSpellsClick: () => void;        // ← Ajouté pour le modal Spells
 }
 
 export default function BottomSections({ 
   onSummoningClick, 
   onSpiritsClick, 
-  onRestClick 
+  onRestClick,
+  onSpellsClick 
 }: Props) {
   return (
     <div style={{ 
@@ -68,8 +70,9 @@ export default function BottomSections({
         👤 ACTIVE SPIRITS
       </div>
 
-      {/* SPELLS & ASTRAL COMBAT */}
+      {/* SPELLS & ASTRAL COMBAT - Maintenant cliquable */}
       <div 
+        onClick={onSpellsClick}
         style={{
           background: "rgba(103, 232, 249, 0.1)",
           border: "2px solid #67e8f9",
@@ -85,6 +88,8 @@ export default function BottomSections({
           transition: "all 0.2s",
           boxShadow: "0 0 15px rgba(103, 232, 249, 0.3)"
         }}
+        onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(103, 232, 249, 0.6)"}
+        onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(103, 232, 249, 0.3)"}
       >
         ✨ SPELLS & ASTRAL COMBAT
       </div>
@@ -110,7 +115,7 @@ export default function BottomSections({
         ⚔️ ATTACK & COMBAT
       </div>
 
-      {/* REST & RECOVERY (cliquable) */}
+      {/* REST & RECOVERY */}
       <div 
         onClick={onRestClick}
         style={{

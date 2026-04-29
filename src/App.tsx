@@ -12,6 +12,7 @@ import SummoningModal from "./components/SummoningModal";
 import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 import HealsAndRestModal from "./components/HealsAndRestModal";
+import SpellsModal from "./components/SpellsModal";
 
 const STORAGE_KEY = 'kage-character';
 
@@ -23,20 +24,25 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
 
-        // Migration automatique pour la nouvelle structure de dégâts
+        // Migration dégâts (ancienne → nouvelle structure)
         if (!parsed.normalPhysical && parsed.physical !== undefined) {
           parsed.normalPhysical = parsed.physical;
-          delete parsed.physical; // on nettoie l'ancien champ
+          delete parsed.physical;
         }
         if (parsed.drainPhysical === undefined) parsed.drainPhysical = 0;
 
-        // Migrations existantes (conservées)
+        // Migration sorts
+        if (!parsed.knownSpells) parsed.knownSpells = [];
+
+        // Autres migrations
         if (!parsed.statusEffects) parsed.statusEffects = [];
         if (!parsed.activeSpirits) parsed.activeSpirits = [];
         if (!parsed.magicallyHealed) parsed.magicallyHealed = false;
 
         return parsed;
-      } catch (e) {}
+      } catch (e) {
+        console.error("Erreur de chargement de la sauvegarde", e);
+      }
     }
 
     // Valeurs par défaut
@@ -51,7 +57,8 @@ export default function App() {
       drainStun: 0,
       activeSpirits: [],
       statusEffects: [],
-      magicallyHealed: false
+      magicallyHealed: false,
+      knownSpells: []
     };
   });
 
@@ -60,7 +67,7 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
 
-  // ==================== UPDATE FUNCTION (stable) ====================
+  // ==================== UPDATE FUNCTION ====================
   const update = useCallback((fn: (draft: any) => void) => {
     setChar((prev: any) => {
       const draft = { ...prev };
@@ -77,7 +84,7 @@ export default function App() {
       optionalPowers: [],
     };
 
-    // Petit délai pour éviter le bug écran noir sur mobile
+    // Délai pour éviter le bug écran noir sur mobile
     setTimeout(() => {
       update((draft) => {
         if (!draft.activeSpirits) draft.activeSpirits = [];
@@ -86,32 +93,22 @@ export default function App() {
     }, 30);
   }, [update]);
 
-  const advanceSolarPhase = useCallback(() => {
-    update((draft) => {
-      if (!draft.activeSpirits || !Array.isArray(draft.activeSpirits)) return;
-      draft.activeSpirits = draft.activeSpirits
-        .map((spirit: any) => ({
-          ...spirit,
-          solarTokens: Math.max(0, spirit.solarTokens - 1)
-        }))
-        .filter((spirit: any) => spirit.solarTokens > 0);
-    });
-  }, [update]);
-
-  const updateName = useCallback((newName: string) => {
-    update((draft) => { draft.name = newName; });
-  }, [update]);
-
-  // ==================== MODALS ====================
-  const [isSummoningOpen, setIsSummoningOpen] = useState(false);
-  const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
-  const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
-  const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
-  const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
-
   const openSpiritSheet = useCallback((spirit: any) => {
     setSelectedSpirit(spirit);
     setIsSpiritSheetOpen(true);
+  }, []);
+
+  // ==================== MODALS STATE ====================
+  const [isSummoningOpen, setIsSummoningOpen] = useState(false);
+  const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
+  const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
+  const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
+  const [isSpellsOpen, setIsSpellsOpen] = useState(false);
+
+  const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
+
+  const onSpellsClick = useCallback(() => {
+    setIsSpellsOpen(true);
   }, []);
 
   return (
@@ -126,7 +123,7 @@ export default function App() {
           <input
             type="text"
             value={char.name || ""}
-            onChange={(e) => updateName(e.target.value)}
+            onChange={(e) => update((draft) => { draft.name = e.target.value; })}
             style={{
               background: "rgba(15, 23, 42, 0.95)",
               border: "2px solid #22ff88",
@@ -158,6 +155,7 @@ export default function App() {
             onSummoningClick={() => setIsSummoningOpen(true)}
             onSpiritsClick={() => setIsSpiritsOpen(true)}
             onRestClick={() => setIsHealsAndRestOpen(true)}
+            onSpellsClick={onSpellsClick}
           />
         </div>
       </div>
@@ -190,6 +188,13 @@ export default function App() {
       <HealsAndRestModal 
         isOpen={isHealsAndRestOpen}
         onClose={() => setIsHealsAndRestOpen(false)}
+        char={char}
+        update={update}
+      />
+
+      <SpellsModal 
+        isOpen={isSpellsOpen}
+        onClose={() => setIsSpellsOpen(false)}
         char={char}
         update={update}
       />

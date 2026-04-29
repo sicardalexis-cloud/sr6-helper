@@ -19,14 +19,12 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const [editingAttr, setEditingAttr] = useState<string | null>(null);
 
   // ==================== EFFECTS ====================
-  // Reset description quand on ferme le modal
   useEffect(() => {
     if (!isOpen) {
       setSelectedPower(null);
     }
   }, [isOpen]);
 
-  // Empêche le scroll du body quand le modal est ouvert
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -45,7 +43,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   };
 
   const showPowerDescription = (power: string) => {
-    setSelectedPower(power);   // reste affiché jusqu'au prochain clic ou fermeture
+    setSelectedPower(power);
   };
 
   const getAttribute = (attr: string): number => {
@@ -71,7 +69,6 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
 
   const resolveAR = (arString: string, attackName: string = ""): string => {
     if (!arString) return "—";
-
     const isEngulf = attackName.toLowerCase().includes("engulf");
     const base = isEngulf ? F * 3 : F * 2;
 
@@ -204,29 +201,57 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         )}
 
-        {/* ATTACKS */}
+        {/* ATTACKS - VERSION SIMPLIFIÉE */}
         {stats.attacks?.length > 0 && (
           <div style={{ background: "#1e2937", padding: "18px", borderRadius: "12px", marginBottom: "16px" }}>
             <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>ATTACKS</h3>
             <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-              {stats.attacks.map((attack: any, i: number) => (
-                <div 
-                  key={i} 
-                  style={{ 
-                    flex: "1 1 300px",
-                    minWidth: "280px",
-                    padding: "14px", 
-                    background: "#0f172a", 
-                    borderRadius: "8px",
-                  }}
-                >
-                  <strong style={{ color: "#c084fc" }}>{attack.name}</strong><br />
-                  <span style={{ color: "#f87171" }}>DV: {resolve(attack.dv)}</span><br />
-                  <span style={{ color: "#94a3b8" }}>
-                    AR: {resolveAR(attack.ar, attack.name)}
-                  </span>
-                </div>
-              ))}
+              {stats.attacks.map((attack: any, i: number) => {
+                const agiFinal = getAttribute("AGI");
+                const skillPool = F + agiFinal;
+
+                let skillName = "Close Combat";
+                if (attack.name.toLowerCase().includes("elemental") || 
+                    attack.name.toLowerCase().includes("ranged") || 
+                    attack.name.toLowerCase().includes("breath") || 
+                    attack.name.toLowerCase().includes("aura")) {
+                  skillName = "Exotic Ranged Weapon";
+                }
+
+                return (
+                  <div 
+                    key={i} 
+                    style={{ 
+                      flex: "1 1 300px",
+                      minWidth: "280px",
+                      padding: "14px", 
+                      background: "#0f172a", 
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <strong style={{ color: "#c084fc" }}>{attack.name}</strong><br />
+
+                    {/* LIGNE SIMPLIFIÉE (comme demandé) */}
+                    <div style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "6px", 
+                      fontSize: "0.92rem", 
+                      color: "#94a3b8",
+                      margin: "8px 0"
+                    }}>
+                      <span style={{ color: "#67e8f9" }}>Skill :</span>
+                      <strong>{skillName}</strong>
+                      <span style={{ color: "#22c55e", fontWeight: "bold" }}>→ {skillPool}</span>
+                    </div>
+
+                    <span style={{ color: "#f87171" }}>DV: {resolve(attack.dv)}</span><br />
+                    <span style={{ color: "#94a3b8" }}>
+                      AR: {resolveAR(attack.ar, attack.name)}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -291,7 +316,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* DESCRIPTION TEMPORAIRE - reste visible jusqu'au prochain clic ou fermeture */}
+        {/* DESCRIPTION TEMPORAIRE */}
         {selectedPower && POWER_DESCRIPTIONS[selectedPower] && (
           <div style={{
             marginTop: "24px",

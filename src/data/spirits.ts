@@ -87,7 +87,7 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
   },
 
   earth: {
-    attributes: { BOD: 4, AGI: -2, REA: -1, STR: 4, WIL: -1, LOG: 0, INT: 0, CHA: 0, MAG: 0, ESS: 0 },
+    attributes: { BOD: 4, AGI: -2, REA: -1, STR: 4, WIL: 0, LOG: -1, INT: 0, CHA: 0, MAG: 0, ESS: 0 },
     defenseRating: 4,
     cm: '(F / 2) + 8',
     movement: '10/15/+1',
@@ -229,7 +229,7 @@ export const POWER_DESCRIPTIONS: Record<string, string> = {
 
   "Energy Aura": "The spirit is surrounded by an elemental aura. Any target that touches or is touched by the spirit suffers Force elemental damage.",
 
-  "Fear": "The spirit inspires intense fear. Targets must succeed on a Willpower + Charisma test (threshold = spirit's Force) or flee / freeze in terror.",
+  "Fear": "M Major LOS Special\nThis power allows a critter to fill its victim with overwhelming terror. The victim flees in panic and doesn’t stop until they are safely away and out of the critter’s sight, at which point they gain both the Panicked and Frightened statuses. The critter makes an Opposed test using its Willpower + Magic against the target’s Willpower + Logic. The terror lasts for 1 combat round per net hit scored by the critter, while the status lasts double that number of combat rounds. Even once the fear fades, the target must succeed in a Willpower + Logic (Critter’s Magic/2) test to gather the nerve to face the critter again.",
 
   "Guard": "The spirit protects a target from accidents and clumsiness. The target gains a bonus equal to the spirit's Force on all Reaction and Intuition tests to avoid accidents.",
 
