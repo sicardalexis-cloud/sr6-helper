@@ -4,9 +4,14 @@ import React from "react";
 interface Props {
   onSummoningClick: () => void;
   onSpiritsClick: () => void;
+  onRestClick: () => void;        // ← AJOUTÉ
 }
 
-export default function BottomSections({ onSummoningClick, onSpiritsClick }: Props) {
+export default function BottomSections({ 
+  onSummoningClick, 
+  onSpiritsClick, 
+  onRestClick 
+}: Props) {
   return (
     <div style={{ 
       display: "grid", 
@@ -105,8 +110,9 @@ export default function BottomSections({ onSummoningClick, onSpiritsClick }: Pro
         ⚔️ ATTACK & COMBAT
       </div>
 
-      {/* REST & RECOVERY */}
+      {/* REST & RECOVERY → maintenant cliquable */}
       <div 
+        onClick={onRestClick}
         style={{
           background: "rgba(248, 113, 113, 0.1)",
           border: "2px solid #f87171",
@@ -123,6 +129,8 @@ export default function BottomSections({ onSummoningClick, onSpiritsClick }: Pro
           boxShadow: "0 0 15px rgba(248, 113, 113, 0.3)",
           gridColumn: "1 / -1"
         }}
+        onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(248, 113, 113, 0.6)"}
+        onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(248, 113, 113, 0.3)"}
       >
         ❤️ REST & RECOVERY
       </div>

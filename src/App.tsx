@@ -11,6 +11,7 @@ import BottomSections from "./components/BottomSections";
 import SummoningModal from "./components/SummoningModal";
 import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
+import HealsAndRestModal from "./components/HealsAndRestModal";   // ← AJOUTÉ
 
 const STORAGE_KEY = 'kage-character';
 
@@ -92,6 +93,7 @@ export default function App() {
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
+  const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);   // ← AJOUTÉ
 
   const openSpiritSheet = useCallback((spirit: any) => {
     setSelectedSpirit(spirit);
@@ -141,6 +143,7 @@ export default function App() {
           <BottomSections 
             onSummoningClick={() => setIsSummoningOpen(true)}
             onSpiritsClick={() => setIsSpiritsOpen(true)}
+            onRestClick={() => setIsHealsAndRestOpen(true)}        // ← AJOUTÉ
           />
         </div>
       </div>
@@ -168,6 +171,14 @@ export default function App() {
           setSelectedSpirit(null);
         }}
         spirit={selectedSpirit}
+      />
+
+      {/* NOUVEAU MODAL HEALS & REST */}
+      <HealsAndRestModal 
+        isOpen={isHealsAndRestOpen}
+        onClose={() => setIsHealsAndRestOpen(false)}
+        char={char}
+        update={update}
       />
     </div>
   );
