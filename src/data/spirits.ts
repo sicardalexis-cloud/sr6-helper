@@ -52,11 +52,12 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Athletics', 'Close Combat', 'Exotic Ranged Weapon', 'Perception'],
     attacks: [
-      { name: "Elemental Attack", dv: "{F}P", ar: "0/-2/-8/-10/-" },
-      { name: "Engulf (Air)", dv: "{F+2}S + Fatigue I", ar: "+1/-/-/-/-" }
+      { name: "Fists", dv: "2S", ar: "+1/-/-/-/-" },
+      { name: "Elemental Attack", dv: "{F}P + chilled or zapped status if not soaked", ar: "0/-2/-8/-10/-" },
+      { name: "Engulf (Air)", dv: "{F}S + Engulf", ar: "+1/-/-/-/-" }
     ],
     powers: ['Accident', 'Astral Form', 'Concealment', 'Confusion', 'Engulf (Air)', 'Materialization', 'Movement', 'Sapience', 'Search'],
-    optionalPowers: ['Elemental Attack', 'Energy Aura', 'Fear', 'Guard', 'Noxious Breath', 'Psychokinesis'],
+    optionalPowers: ['Elemental Attack (Cold)', 'Elemental Attack (Electricity)', 'Energy Aura', 'Fear', 'Guard', 'Noxious Breath', 'Psychokinesis'],
   },
 
   beast: {
@@ -67,7 +68,7 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativePhysical: { baseModifier: 2, dice: 2 },
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Close Combat', 'Perception'],
-    attacks: [{ name: "Claw/Bite", dv: "{F/2}P", ar: "0/-/-/-/-" }],
+    attacks: [{ name: "Claw/Bite", dv: "{F/2}P", ar: "+2/-/-/-/-" }],
     powers: ['Animal Control', 'Astral Form', 'Enhanced Senses', 'Fear', 'Materialization', 'Movement', 'Sapience'],
     optionalPowers: ['Concealment', 'Confusion', 'Guard', 'Natural Weapon', 'Noxious Breath', 'Search', 'Venom'],
   },
@@ -80,7 +81,7 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativePhysical: { baseModifier: 2, dice: 2 },
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Close Combat', 'Perception', 'Sorcery'],
-    attacks: [{ name: "Fists", dv: "{F/2}S", ar: "0/-/-/-/-" }],
+    attacks: [{ name: "Fists", dv: "2S", ar: "0/-/-/-/-" }],
     powers: ['Accident', 'Astral Form', 'Concealment', 'Confusion', 'Enhanced Senses', 'Guard', 'Influence', 'Materialization', 'Sapience', 'Search'],
     optionalPowers: ['Fear', 'Innate Spell', 'Movement', 'Psychokinesis'],
   },
@@ -93,9 +94,13 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativePhysical: { baseModifier: 2, dice: 2 },
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Close Combat', 'Exotic Ranged Weapon', 'Perception'],
-    attacks: [{ name: "Elemental Attack (Chemical)", dv: "{F}P", ar: "0/-2/-8/-10/-" }],
+    attacks: [
+      { name: "Fists", dv: "2S", ar: "+3/-/-/-/-" },
+      { name: "Elemental Attack (Chemical)", dv: "{F}P+ corrosive status if not soaked", ar: "0/-2/-8/-10/-" },
+      { name: "Engulf (Earth)", dv: "{F}S + Engulf", ar: "+3/-/-/-/-" }
+    ],
     powers: ['Astral Form', 'Binding', 'Guard', 'Materialization', 'Movement', 'Sapience', 'Search'],
-    optionalPowers: ['Concealment', 'Confusion', 'Elemental Attack', 'Engulf (Earth)', 'Fear'],
+    optionalPowers: ['Concealment', 'Confusion', 'Elemental Attack (Chemical)', 'Engulf (Earth)', 'Fear'],
   },
 
   fire: {
@@ -107,8 +112,9 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Athletics', 'Close Combat', 'Exotic Ranged Weapon', 'Perception'],
     attacks: [
-      { name: "Elemental Attack (Fire)", dv: "{F}P", ar: "0/-2/-8/-10/-" },
-      { name: "Engulf (Fire)", dv: "{F+2}S + Fatigue I", ar: "+1/-/-/-/-" }
+      { name: "Fists", dv: "2S", ar: "+1/-/-/-/-" },
+      { name: "Elemental Attack (Fire)", dv: "{F}P + burning status if not soaked", ar: "0/-2/-8/-10/-" },
+      { name: "Engulf (Fire)", dv: "{F}S + Burning + Engulf", ar: "+1/-/-/-/-" }
     ],
     powers: ['Accident', 'Astral Form', 'Confusion', 'Elemental Attack (Fire)', 'Energy Aura (Fire)', 'Engulf (Fire)', 'Materialization', 'Sapience'],
     optionalPowers: ['Fear', 'Guard', 'Noxious Breath', 'Search'],
@@ -123,11 +129,12 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Athletics (Swimming)', 'Close Combat', 'Exotic Ranged Weapon', 'Perception'],
     attacks: [
-      { name: "Elemental Attack (Cold)", dv: "{F}P", ar: "0/-2/-8/-10/-" },
-      { name: "Engulf (Water)", dv: "{F+2}S + Fatigue I", ar: "+1/-/-/-/-" }
+      { name: "Fists", dv: "2S", ar: "+2/-/-/-/-" },
+      { name: "Elemental Attack (Cold)", dv: "{F}P+ chilled status if not soaked", ar: "0/-2/-8/-10/-" },
+      { name: "Engulf (Water)", dv: "{F}S + Engulf", ar: "+2/-/-/-/-" }
     ],
     powers: ['Astral Form', 'Concealment', 'Confusion', 'Engulf (Water)', 'Materialization', 'Movement', 'Sapience', 'Search'],
-    optionalPowers: ['Accident', 'Binding', 'Elemental Attack', 'Energy Aura', 'Guard', 'Weather Control'],
+    optionalPowers: ['Accident', 'Binding', 'Elemental Attack (Cold)', 'Energy Aura (Cold)', 'Guard', 'Weather Control'],
   },
 
   plant: {
@@ -138,7 +145,7 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
     initiativePhysical: { baseModifier: 2, dice: 2 },
     initiativeAstral: { baseModifier: 3, dice: 3 },
     skills: ['Astral', 'Close Combat', 'Exotic Ranged Weapon', 'Perception'],
-    attacks: [{ name: "Engulf", dv: "{F}P", ar: "*3/-/-/-/-" }],
+    attacks: [{ name: "Engulf", dv: "{F}P", ar: "+3/-/-/-/-" }],
     powers: ['Astral Form', 'Concealment', 'Engulf', 'Fear', 'Guard', 'Magical Guard', 'Materialization', 'Sapience', 'Silence'],
     optionalPowers: ['Accident', 'Confusion', 'Movement', 'Noxious Breath', 'Search'],
   },
@@ -184,50 +191,82 @@ export const SPIRIT_STATS: Record<SpiritType, SpiritStats> = {
 };
 
 export const POWER_DESCRIPTIONS: Record<string, string> = {
-  // === Descriptions déjà existantes (gardées) ===
-  "Astral Form": "Le pouvoir le plus courant des esprits. L'esprit existe uniquement sur le plan astral. Il est invisible et intangible sur le plan physique sauf s'il utilise Materialization. Il peut percevoir et interagir avec le plan astral normalement.",
-  "Materialization": "L'esprit peut prendre une forme physique tangible sur le plan matériel. Il gagne un corps physique avec les attributs physiques normaux de son type d'esprit. Il devient visible et peut interagir physiquement avec le monde matériel.",
-  "Sapience": "L'esprit est intelligent et conscient. Il peut raisonner, parler, comprendre les langues, et prendre des décisions complexes. Sans ce pouvoir, l'esprit agit de manière instinctive.",
-  "Accident": "L'esprit peut provoquer un accident mineur dans un rayon de (Force × 2) mètres. Exemples : faire trébucher quelqu'un, faire tomber un objet, faire caler un véhicule, etc. Test opposé : Force de l'esprit vs Réaction + Intuition de la cible.",
-  "Concealment": "L'esprit peut rendre une cible (ou lui-même) plus difficile à détecter. Il ajoute son Force aux tests de Perception pour détecter la cible cachée.",
-  "Confusion": "L'esprit embrouille l'esprit des cibles dans un rayon de (Force × 2) mètres. Les cibles subissent un malus égal à la Force de l'esprit sur tous leurs tests de compétences mentales et de Perception.",
-  "Engulf": "L'esprit enveloppe et étouffe une cible. Dégâts = (Force + 2) dégâts de type Stun (Air/Fire) ou Physique (Earth/Water). La cible est immobilisée.",
-  "Engulf (Air)": "L'esprit enveloppe et étouffe une cible. Dégâts = (Force + 2)S + Fatigue I. La cible est immobilisée.",
-  "Engulf (Fire)": "L'esprit enveloppe et étouffe une cible. Dégâts = (Force + 2)S + Fatigue I. La cible est immobilisée.",
-  "Engulf (Water)": "L'esprit enveloppe et étouffe une cible. Dégâts = (Force + 2)S + Fatigue I. La cible est immobilisée.",
-  "Engulf (Earth)": "L'esprit enveloppe et étouffe une cible. Dégâts = (Force + 2)P. La cible est immobilisée.",
-  "Fear": "L'esprit inspire une peur intense. Les cibles doivent réussir un test de Volonté + Charisme (seuil = Force de l'esprit) ou fuir / se figer de terreur.",
-  "Guard": "L'esprit protège une cible contre les accidents et les maladresses. La cible gagne un bonus égal à la Force de l'esprit sur tous ses tests de Réaction et d'Intuition pour éviter les accidents.",
-  "Influence": "L'esprit peut influencer les émotions et les désirs d'une cible. Il peut suggérer une émotion ou une envie simple.",
-  "Innate Spell": "L'esprit connaît un sort (choisi par le conjurateur au moment de l'invocation). Il peut lancer ce sort comme un magicien avec sa Force comme niveau de sort.",
-  "Magical Guard": "L'esprit peut protéger une cible contre la magie. Il ajoute son Force aux tests de résistance à la magie de la cible.",
-  "Movement": "L'esprit peut augmenter ou diminuer la vitesse de déplacement d'une cible de ± (Force × 2) mètres par tour.",
-  "Natural Weapon": "L'esprit possède des armes naturelles (griffes, crocs, etc.). DV = (Force / 2 + 1) P, AR = (Force × 2) / - / - / - / -",
-  "Noxious Breath": "L'esprit exhale un gaz toxique. Test opposé : Force de l'esprit vs Constitution + Volonté. La cible subit des dégâts de Stun et un malus.",
-  "Psychokinesis": "L'esprit peut déplacer des objets à distance avec une force physique égale à sa Force.",
-  "Search": "L'esprit peut localiser un objet ou une personne connue. Il effectue un test de Recherche avec un nombre de dés égal à sa Force.",
-  "Shadow Cloak": "L'esprit peut se fondre dans les ombres, devenant extrêmement difficile à détecter dans l'obscurité.",
-  "Silence": "L'esprit peut créer une zone de silence total dans un rayon de Force × 2 mètres.",
-  "Skill": "L'esprit possède une compétence spécialisée (Biotech, Electronics, Engineering, etc.).",
-  "Skill Specialization": "L'esprit possède une compétence spécialisée (Biotech, Electronics, Engineering, etc.).",
-  "Venom": "L'esprit injecte un venin puissant lors d'une attaque au contact.",
-  "Weather Control": "L'esprit peut modifier les conditions météorologiques dans une zone importante.",
-  "Divining": "L'esprit peut lire l'avenir ou obtenir des visions (pouvoir rare des esprits Guidance).",
-  "Binding": "L'esprit peut lier physiquement une cible (pouvoir des esprits de Terre et d'Eau).",
-  "Enhanced Senses": "L'esprit possède des sens améliorés (vision nocturne, odorat, ouïe, thermographie, etc.).",
-  "Animal Control": "L'esprit peut contrôler les animaux (pouvoir des esprits Bêtes et Guardians).",
+  "Astral Form": "The most common power of spirits. The spirit exists only on the astral plane. It is invisible and intangible on the physical plane unless it uses Materialization. It can perceive and interact with the astral plane normally.",
 
-  // === NOUVELLES DESCRIPTIONS DEMANDÉES ===
-  "Elemental Attack": "Attaque à distance élémentaire. DV = Force P, AR = (Force × 2) / (Force × 2 - 2) / (Force × 2 - 8) / (Force × 2 - 10) / -",
-  "Elemental Attack (Fire)": "Attaque à distance de type Feu. DV = Force P, AR = (Force × 2) / (Force × 2 - 2) / (Force × 2 - 8) / (Force × 2 - 10) / -",
-  "Elemental Attack (Cold)": "Attaque à distance de type Froid. DV = Force P, AR = (Force × 2) / (Force × 2 - 2) / (Force × 2 - 8) / (Force × 2 - 10) / -",
-  "Elemental Attack (Electricity)": "Attaque à distance de type Électricité. DV = Force P, AR = (Force × 2) / (Force × 2 - 2) / (Force × 2 - 8) / (Force × 2 - 10) / -",
-  "Elemental Attack (Chemical)": "Attaque à distance de type Chimique. DV = Force P, AR = (Force × 2) / (Force × 2 - 2) / (Force × 2 - 8) / (Force × 2 - 10) / -",
+  "Materialization": "The spirit can take on a physical tangible form on the material plane. It gains a physical body with the normal physical attributes of its spirit type. It becomes visible and can physically interact with the material world.",
 
-  "Energy Aura": "L'esprit est entouré d'une aura élémentaire. Toute cible qui le touche ou qu'il touche subit (Force) dégâts élémentaires.",
-  "Energy Aura (Fire)": "Aura de Feu. Toute cible qui touche l'esprit ou qu'il touche subit Force dégâts de Feu.",
-  "Energy Aura (Cold)": "Aura de Froid. Toute cible qui touche l'esprit ou qu'il touche subit Force dégâts de Froid.",
-  "Energy Aura (Electricity)": "Aura d'Électricité. Toute cible qui touche l'esprit ou qu'il touche subit Force dégâts d'Électricité.",
+  "Sapience": "The spirit is intelligent and self-aware. It can reason, speak, understand languages, and make complex decisions. Without this power, the spirit acts on instinct.",
+
+  "Accident": "The spirit can cause a minor accident within (Force × 2) meters. Examples: tripping someone, dropping an object, stalling a vehicle, etc. Opposed test: Spirit's Force vs. target's Reaction + Intuition.",
+
+  "Concealment": "Concealment applies the Invisible (Improved) status equal to the critter’s Magic attribute. In combat, an Observe in Detail Major Action must be used to allow a Perception test to attempt to overcome the concealment. Success means the target is spotted by that character until the critter can hide again or the end of the character’s next player turn, whichever comes last. Concealment can be used simultaneously on a number of average metahuman-sized targets (Body up to 5; Body over 5 counts as 2 targets) equal to the critter’s Magic, or a number of much smaller targets equal to the critter’s Magic x 5. Concealed subjects can see each other if the critter allows it. The effect lasts until the critter stops sustaining the power.",
+
+  "Confusion": "The spirit confuses the minds of targets within (Force × 2) meters. Targets suffer a penalty equal to the spirit's Force on all mental skill and Perception tests.",
+
+  "Engulf": "If the attack hits (even if damage is resisted), the target is engulfed and becomes Immobilized. At the start of the critter's turn, the engulfed target automatically suffers damage.",
+
+  "Engulf (Air)": "Air Engulf: if attack hit (even if resisted) the target is engulfed = the target is immobilized and at the start of the critter turn The target resists Stun damage with a DV equal to (Magic + 2). If the victim passes out from Stun damage, they continue to take damage, with the Stun damage overflowing into Physical damage as normal. Victims gain the Fatigued I status. Escape = Major action and Strength + Athletics vs Body + Magic.",
+
+  "Engulf (Earth)": "Earth Engulf: if attack hit (even if resisted) the target is engulfed = the target is immobilized and at the start of the critter turn The target resists Physical damage with a DV equal to (Magic + 2). Victims gain the Fatigued I status. Escape = Major action and Strength + Athletics vs Body + Magic.",
+
+  "Engulf (Fire)": "Fire Engulf: if attack hit (even if resisted) the target is engulfed = the target is immobilized and at the start of the critter turn The victim resists Physical damage with a DV equal to (Magic) and gains the Burning status for as long as they are engulfed + 1 combat round. Escape = Major action and Strength + Athletics vs Body + Magic.",
+
+  "Engulf (Water)": "Water Engulf: if attack hit (even if resisted) the target is engulfed = the target is immobilized and at the start of the critter turn The victim resists Stun with a DV of (Magic + 2). This is rougher than normal drowning, because the critter is capable of exerting great pressure on the victim. Victims who pass out from Stun damage continue to take damage after falling unconscious, with the Stun damage overflowing into Physical damage as normal. The victim suffers the Wet and Fatigued I statuses. Escape = Major action and Strength + Athletics vs Body + Magic.",
+
+"Elemental Attack (Cold)": "The target gains the Chilled status for 3 rounds if the damage is not fully soaked. Chilled: –4 to your Initiative Score and –1 to all dice pools besides Damage Resistance tests. This status cancels and is canceled by the Burning status.If the modified Damage Value of an attack exceeds the Armor of the target, the Defense boost from that piece of armor is permanently decreased by one after the attack is resolved.",
+
+  "Elemental Attack (Electricity)": "The target gains the Zapped status for 2 rounds if the damage is not fully soaked. Zapped: -2 Initiative Score, the inability to take the Sprint Action, and a dice pool penalty of –1 on all actions.",
+
+  "Elemental Attack (Fire)": "The target gains the Burning(P) status if the damage is not fully soaked. Burning: The target takes (P)P damage at the end of each of its Combat Rounds until the status ends or the fire is extinguished.There are multiple ways to remove this status.You can spend a Major Action and roll an Agility + Reaction (2) test; success means the fire is out and the status is removed. You can also jump into water to remove the status without a roll. If you gain the Wet and/or Chilled statuses, the Burning status is canceled. Similarly, gaining the Burning status cancels the Wet or Chilled status.",
+
+  "Elemental Attack (Chemical)": "The target gains the Corrosive(P) status if the damage is not fully soaked. Corrosive: The target takes (P)P damage at the end of each of its Combat Rounds until the status ends . If the modified Damage Value of an attack exceeds the Armor of the target, the Defense boost from that piece of armor is permanently decreased by one after the attack is resolved.",
+
+  "Energy Aura (Cold)": "The spirit is surrounded by a cold aura. Any target that touches or is touched by the spirit suffers Force Cold damage and gains the Chilled status.",
+
+  "Energy Aura (Fire)": "The spirit is surrounded by a fire aura. Any target that touches or is touched by the spirit suffers Force Fire damage and gains the Burning status.",
+
+  "Elemental Attack": "Whether it’s a burst of flame, a spear of ice, a bolt of lightning, or a glob of caustic chemicals, a critter with this power can project a damaging bolt of elemental energy. The power is selected with a specific element type: Electricity, Fire, Chemical, or Cold. Make a ranged combat attack using the critter’s Magic + Agility. DV = (Magic)P. The target gains the appropriate Status Effect only if the damage is not fully soaked.",
+
+  "Energy Aura": "The spirit is surrounded by an elemental aura. Any target that touches or is touched by the spirit suffers Force elemental damage.",
+
+  "Fear": "The spirit inspires intense fear. Targets must succeed on a Willpower + Charisma test (threshold = spirit's Force) or flee / freeze in terror.",
+
+  "Guard": "The spirit protects a target from accidents and clumsiness. The target gains a bonus equal to the spirit's Force on all Reaction and Intuition tests to avoid accidents.",
+
+  "Influence": "The spirit can influence the emotions and desires of a target. It can suggest a simple emotion or desire.",
+
+  "Innate Spell": "The spirit knows one spell (chosen by the summoner at the time of summoning). It can cast this spell as a magician using its Force as the spell rating.",
+
+  "Magical Guard": "The spirit can protect a target against magic. It adds its Force to the target's magic resistance tests.",
+
+  "Movement": "The spirit can increase or decrease a target's movement speed by ± (Force × 2) meters per turn.",
+
+  "Natural Weapon": "The spirit has natural weapons (claws, fangs, etc.). DV = (Force / 2 + 1) P, AR = (Force × 2) / - / - / - / -",
+
+  "Noxious Breath": "The spirit exhales a toxic gas. Opposed test: Spirit's Force vs. Constitution + Willpower. The target suffers Stun damage and a penalty.",
+
+  "Psychokinesis": "The spirit can move objects at a distance with physical strength equal to its Force.",
+
+  "Search": "The spirit can locate a known object or person. It performs a Search test with a number of dice equal to its Force.",
+
+  "Shadow Cloak": "The spirit can blend into shadows, becoming extremely difficult to detect in darkness.",
+
+  "Silence": "The spirit can create a zone of total silence within a radius of Force × 2 meters.",
+
+  "Skill": "The spirit possesses a specialized skill (Biotech, Electronics, Engineering, etc.).",
+  "Skill Specialization": "The spirit possesses a specialized skill (Biotech, Electronics, Engineering, etc.).",
+
+  "Venom": "The spirit injects a powerful venom during a close combat attack.",
+
+  "Weather Control": "The spirit can alter weather conditions in a large area.",
+
+  "Divining": "The spirit can read the future or obtain visions (rare power of Guidance spirits).",
+
+  "Binding": "The spirit can physically bind a target (power of Earth and Water spirits).",
+
+  "Enhanced Senses": "The spirit has enhanced senses (low-light vision, smell, hearing, thermographic, etc.).",
+
+  "Animal Control": "The spirit can control animals (power of Beast and Guardian spirits).",
 };
 
 export default POWER_DESCRIPTIONS;

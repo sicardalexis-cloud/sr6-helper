@@ -19,25 +19,14 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const [editingAttr, setEditingAttr] = useState<string | null>(null);
 
   // ==================== EFFECTS ====================
+  // Reset description quand on ferme le modal
   useEffect(() => {
-    if (spirit && isOpen) {
-      const initial: Record<string, number> = {};
-      const stats = SPIRIT_STATS[spirit.element.toLowerCase() as SpiritType] || SPIRIT_STATS.fire;
-      Object.keys(stats.attributes || {}).forEach(attr => {
-        const modifier = stats.attributes?.[attr] ?? 0;
-        initial[attr] = (spirit.force || 1) + modifier;
-      });
-      setEditedAttributes(initial);
+    if (!isOpen) {
+      setSelectedPower(null);
     }
-  }, [spirit, isOpen]);
+  }, [isOpen]);
 
-  useEffect(() => {
-    if (selectedPower) {
-      const timer = setTimeout(() => setSelectedPower(null), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedPower]);
-
+  // Empêche le scroll du body quand le modal est ouvert
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -56,7 +45,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   };
 
   const showPowerDescription = (power: string) => {
-    setSelectedPower(power);
+    setSelectedPower(power);   // reste affiché jusqu'au prochain clic ou fermeture
   };
 
   const getAttribute = (attr: string): number => {
@@ -80,13 +69,17 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       .replace(/\{F\/2\}/g, Math.floor(F / 2).toString());
   };
 
-  const resolveAR = (arString: string): string => {
+  const resolveAR = (arString: string, attackName: string = ""): string => {
     if (!arString) return "—";
+
+    const isEngulf = attackName.toLowerCase().includes("engulf");
+    const base = isEngulf ? F * 3 : F * 2;
+
     return arString.split('/').map(part => {
       const p = part.trim();
       if (p === "-" || p === "") return "-";
-      if (p === "0") return (F * 2).toString();
-      if (p.startsWith("+") || p.startsWith("-")) return (F * 2 + parseInt(p)).toString();
+      if (p === "0") return base.toString();
+      if (p.startsWith("+") || p.startsWith("-")) return (base + parseInt(p)).toString();
       return p;
     }).join('/');
   };
@@ -188,7 +181,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* SKILLS - NOUVELLE SECTION */}
+        {/* SKILLS */}
         {stats.skills?.length > 0 && (
           <div style={{ background: "#1e2937", padding: "18px", borderRadius: "12px", marginBottom: "16px" }}>
             <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>SKILLS</h3>
@@ -229,7 +222,9 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
                 >
                   <strong style={{ color: "#c084fc" }}>{attack.name}</strong><br />
                   <span style={{ color: "#f87171" }}>DV: {resolve(attack.dv)}</span><br />
-                  <span style={{ color: "#94a3b8" }}>AR: {resolveAR(attack.ar)}</span>
+                  <span style={{ color: "#94a3b8" }}>
+                    AR: {resolveAR(attack.ar, attack.name)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -296,7 +291,7 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
           </div>
         </div>
 
-        {/* DESCRIPTION TEMPORAIRE */}
+        {/* DESCRIPTION TEMPORAIRE - reste visible jusqu'au prochain clic ou fermeture */}
         {selectedPower && POWER_DESCRIPTIONS[selectedPower] && (
           <div style={{
             marginTop: "24px",
