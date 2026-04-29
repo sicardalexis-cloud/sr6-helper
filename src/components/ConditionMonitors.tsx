@@ -13,25 +13,52 @@ export default function ConditionMonitors({ char, update }: Props) {
   const physicalMax = 8 + Math.ceil(bod / 2);
   const stunMax = 8 + Math.ceil(wil / 2);
 
-  const physicalCurrent = Number(char.physical ?? 0);
+  // Variables actuelles
+  const normalPhysical = Number(char.normalPhysical ?? char.physical ?? 0);
+  const drainPhysical = Number(char.drainPhysical ?? 0);
+  const totalPhysical = normalPhysical + drainPhysical;
+
   const normalStun = Number(char.stun ?? 0);
   const drainStun = Number(char.drainStun ?? 0);
   const totalStun = normalStun + drainStun;
 
-  const physicalPenalty = Math.floor(physicalCurrent / 3);
+  // Malus de dés (calculé sur le total)
+  const physicalPenalty = Math.floor(totalPhysical / 3);
   const stunPenalty = Math.floor(totalStun / 3);
   const totalPenalty = physicalPenalty + stunPenalty;
+
+  // === NOUVELLE RÈGLE : réduction mutuelle des max ===
+  const effectiveNormalPhysicalMax = Math.max(0, physicalMax - drainPhysical);
+  const effectiveDrainPhysicalMax  = Math.max(0, physicalMax - normalPhysical);
+
+  const effectiveNormalStunMax = Math.max(0, stunMax - drainStun);
+  const effectiveDrainStunMax  = Math.max(0, stunMax - normalStun);
 
   const statusEffects = char.statusEffects || [];
 
   const [showSelector, setShowSelector] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const handleClick = (type: "physical" | "normalStun" | "drainStun", index: number) => {
+  const handleClick = (type: "normalPhysical" | "drainPhysical" | "normalStun" | "drainStun", index: number) => {
     update((draft: any) => {
-      if (type === "physical") draft.physical = physicalCurrent === index + 1 ? index : index + 1;
-      else if (type === "normalStun") draft.stun = normalStun === index + 1 ? index : index + 1;
-      else if (type === "drainStun") draft.drainStun = drainStun === index + 1 ? index : index + 1;
+      if (type === "normalPhysical") {
+        draft.normalPhysical = normalPhysical === index + 1 ? index : index + 1;
+      } else if (type === "drainPhysical") {
+        draft.drainPhysical = drainPhysical === index + 1 ? index : index + 1;
+      } else if (type === "normalStun") {
+        draft.stun = normalStun === index + 1 ? index : index + 1;
+      } else if (type === "drainStun") {
+        draft.drainStun = drainStun === index + 1 ? index : index + 1;
+      }
+    });
+  };
+
+  const markMagicalHealing = () => {
+    update((draft: any) => {
+      draft.drainPhysical = (draft.drainPhysical || 0) + (draft.normalPhysical || 0);
+      draft.drainStun = (draft.drainStun || 0) + (draft.stun || 0);
+      draft.normalPhysical = 0;
+      draft.stun = 0;
     });
   };
 
@@ -39,9 +66,7 @@ export default function ConditionMonitors({ char, update }: Props) {
     update((draft: any) => {
       if (!draft.statusEffects) draft.statusEffects = [];
       const exists = draft.statusEffects.some((s: any) => s.name === name);
-      if (!exists) {
-        draft.statusEffects.push({ name, value: 1 });
-      }
+      if (!exists) draft.statusEffects.push({ name, value: 1 });
     });
     setShowSelector(false);
   };
@@ -122,6 +147,7 @@ export default function ConditionMonitors({ char, update }: Props) {
         <h3 style={{ color: "#67e8f9", margin: 0, fontSize: "1.45rem", letterSpacing: "2px" }}>
           CONDITION MONITORS
         </h3>
+
         <div style={{ 
           color: totalPenalty > 0 ? "#ef4444" : "#4ade80", 
           fontWeight: "bold", 
@@ -129,42 +155,49 @@ export default function ConditionMonitors({ char, update }: Props) {
         }}>
           dice pools {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
         </div>
+
+        <button
+          onClick={markMagicalHealing}
+          style={{
+            padding: "6px 16px",
+            background: "#c084fc",
+            color: "#000",
+            border: "none",
+            borderRadius: "9999px",
+            fontWeight: "bold",
+            fontSize: "0.85rem",
+            cursor: "pointer"
+          }}
+        >
+          ✨ Soins Magique
+        </button>
       </div>
 
-      {/* Two-column layout */}
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "1fr 1fr", 
-        gap: "20px" 
-      }}>
-        
+      {/* Affichage des cases avec réduction mutuelle */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
         {/* Left column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          {/* PHYSICAL */}
           <div>
             <div style={{ color: "#ef4444", fontWeight: "bold", marginBottom: "6px", fontSize: "0.95rem" }}>PHYSICAL</div>
-            {renderBoxes(physicalCurrent, physicalMax, "#ef4444", "physical")}
+            {renderBoxes(normalPhysical, effectiveNormalPhysicalMax, "#ef4444", "normalPhysical")}
           </div>
 
-          {/* STUN */}
           <div>
             <div style={{ color: "#eab308", fontWeight: "bold", marginBottom: "6px", fontSize: "0.95rem" }}>STUN</div>
-            {renderBoxes(normalStun, stunMax, "#eab308", "normalStun")}
+            {renderBoxes(normalStun, effectiveNormalStunMax, "#eab308", "normalStun")}
           </div>
         </div>
 
-        {/* Right column */}
+        {/* Right column - Drain */}
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          {/* TOTAL STUN */}
           <div>
-            <div style={{ color: "#facc15", fontWeight: "bold", marginBottom: "6px", fontSize: "0.95rem" }}>TOTAL STUN</div>
-            {renderBoxes(totalStun, stunMax, "#facc15")}
+            <div style={{ color: "#c084fc", fontWeight: "bold", marginBottom: "6px", fontSize: "0.95rem" }}>DRAIN PHYSICAL</div>
+            {renderBoxes(drainPhysical, effectiveDrainPhysicalMax, "#c084fc", "drainPhysical")}
           </div>
 
-          {/* DRAIN STUN */}
           <div>
             <div style={{ color: "#a855f7", fontWeight: "bold", marginBottom: "6px", fontSize: "0.95rem" }}>DRAIN STUN</div>
-            {renderBoxes(drainStun, stunMax, "#a855f7", "drainStun")}
+            {renderBoxes(drainStun, effectiveDrainStunMax, "#a855f7", "drainStun")}
           </div>
         </div>
       </div>
@@ -190,17 +223,8 @@ export default function ConditionMonitors({ char, update }: Props) {
           </button>
         </div>
 
-        {/* Sélecteur */}
         {showSelector && (
-          <div style={{ 
-            display: "flex", 
-            flexWrap: "wrap", 
-            gap: "6px", 
-            marginBottom: "12px", 
-            padding: "10px", 
-            background: "#111827", 
-            borderRadius: "10px" 
-          }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px", padding: "10px", background: "#111827", borderRadius: "10px" }}>
             {availableStatuses.map(({ name, color }) => (
               <div
                 key={name}
@@ -221,13 +245,11 @@ export default function ConditionMonitors({ char, update }: Props) {
           </div>
         )}
 
-        {/* Status pills */}
         {statusEffects.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {statusEffects.map((status: any, index: number) => {
               const isEditing = editingIndex === index;
               const value = status.value ?? 1;
-
               return (
                 <div key={index} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                   <div
@@ -251,14 +273,7 @@ export default function ConditionMonitors({ char, update }: Props) {
                   </div>
 
                   {isEditing && (
-                    <div style={{ 
-                      padding: "4px 8px", 
-                      background: "#111827", 
-                      borderRadius: "8px", 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: "8px" 
-                    }}>
+                    <div style={{ padding: "4px 8px", background: "#111827", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
                       <input
                         type="range"
                         min="1"
@@ -269,13 +284,7 @@ export default function ConditionMonitors({ char, update }: Props) {
                       />
                       <button
                         onClick={(e) => { e.stopPropagation(); removeStatus(index); }}
-                        style={{ 
-                          background: "none", 
-                          border: "none", 
-                          color: "#f87171", 
-                          fontSize: "1.3rem", 
-                          cursor: "pointer" 
-                        }}
+                        style={{ background: "none", border: "none", color: "#f87171", fontSize: "1.3rem", cursor: "pointer" }}
                       >
                         ✕
                       </button>

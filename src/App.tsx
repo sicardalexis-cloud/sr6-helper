@@ -11,7 +11,7 @@ import BottomSections from "./components/BottomSections";
 import SummoningModal from "./components/SummoningModal";
 import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
-import HealsAndRestModal from "./components/HealsAndRestModal";   // ← AJOUTÉ
+import HealsAndRestModal from "./components/HealsAndRestModal";
 
 const STORAGE_KEY = 'kage-character';
 
@@ -22,22 +22,36 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Migration automatique pour les anciennes sauvegardes
+
+        // Migration automatique pour la nouvelle structure de dégâts
+        if (!parsed.normalPhysical && parsed.physical !== undefined) {
+          parsed.normalPhysical = parsed.physical;
+          delete parsed.physical; // on nettoie l'ancien champ
+        }
+        if (parsed.drainPhysical === undefined) parsed.drainPhysical = 0;
+
+        // Migrations existantes (conservées)
         if (!parsed.statusEffects) parsed.statusEffects = [];
         if (!parsed.activeSpirits) parsed.activeSpirits = [];
+        if (!parsed.magicallyHealed) parsed.magicallyHealed = false;
+
         return parsed;
       } catch (e) {}
     }
+
+    // Valeurs par défaut
     return {
       name: "KAGE",
       attributes: { BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3, LOG: 3, INT: 3, CHA: 3, MAGIC: 6, ESSENCE: 6 },
       edge: { current: 7, max: 7 },
       minorActions: { current: 2, max: 3 },
-      physical: 0,
+      normalPhysical: 0,
+      drainPhysical: 0,
       stun: 0,
       drainStun: 0,
       activeSpirits: [],
-      statusEffects: []          // ← AJOUTÉ
+      statusEffects: [],
+      magicallyHealed: false
     };
   });
 
@@ -93,7 +107,7 @@ export default function App() {
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
-  const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);   // ← AJOUTÉ
+  const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
 
   const openSpiritSheet = useCallback((spirit: any) => {
     setSelectedSpirit(spirit);
@@ -143,7 +157,7 @@ export default function App() {
           <BottomSections 
             onSummoningClick={() => setIsSummoningOpen(true)}
             onSpiritsClick={() => setIsSpiritsOpen(true)}
-            onRestClick={() => setIsHealsAndRestOpen(true)}        // ← AJOUTÉ
+            onRestClick={() => setIsHealsAndRestOpen(true)}
           />
         </div>
       </div>
@@ -173,7 +187,6 @@ export default function App() {
         spirit={selectedSpirit}
       />
 
-      {/* NOUVEAU MODAL HEALS & REST */}
       <HealsAndRestModal 
         isOpen={isHealsAndRestOpen}
         onClose={() => setIsHealsAndRestOpen(false)}

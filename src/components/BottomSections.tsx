@@ -4,7 +4,7 @@ import React from "react";
 interface Props {
   onSummoningClick: () => void;
   onSpiritsClick: () => void;
-  onRestClick: () => void;        // ← AJOUTÉ
+  onRestClick: () => void;
 }
 
 export default function BottomSections({ 
@@ -110,7 +110,7 @@ export default function BottomSections({
         ⚔️ ATTACK & COMBAT
       </div>
 
-      {/* REST & RECOVERY → maintenant cliquable */}
+      {/* REST & RECOVERY (cliquable) */}
       <div 
         onClick={onRestClick}
         style={{
