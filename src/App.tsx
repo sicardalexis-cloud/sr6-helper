@@ -13,6 +13,7 @@ import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 import HealsAndRestModal from "./components/HealsAndRestModal";
 import SpellsModal from "./components/SpellsModal";
+import SpellcastingModal from "./components/SpellcastingModal";   // ← Nouveau
 
 const STORAGE_KEY = 'kage-character';
 
@@ -24,7 +25,7 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
 
-        // Migration dégâts (ancienne → nouvelle structure)
+        // Migration dégâts
         if (!parsed.normalPhysical && parsed.physical !== undefined) {
           parsed.normalPhysical = parsed.physical;
           delete parsed.physical;
@@ -84,7 +85,6 @@ export default function App() {
       optionalPowers: [],
     };
 
-    // Délai pour éviter le bug écran noir sur mobile
     setTimeout(() => {
       update((draft) => {
         if (!draft.activeSpirits) draft.activeSpirits = [];
@@ -103,14 +103,12 @@ export default function App() {
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
-  const [isSpellsOpen, setIsSpellsOpen] = useState(false);
+  const [isSpellsOpen, setIsSpellsOpen] = useState(false);           // Liste des sorts
+  const [isSpellcastingOpen, setIsSpellcastingOpen] = useState(false); // Lancer de sorts
 
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
-  const onSpellsClick = useCallback(() => {
-    setIsSpellsOpen(true);
-  }, []);
-
+  // ==================== RENDER ====================
   return (
     <div style={{
       background: "radial-gradient(circle at center, #1a2333 0%, #0a0f1c 100%)",
@@ -155,7 +153,8 @@ export default function App() {
             onSummoningClick={() => setIsSummoningOpen(true)}
             onSpiritsClick={() => setIsSpiritsOpen(true)}
             onRestClick={() => setIsHealsAndRestOpen(true)}
-            onSpellsClick={onSpellsClick}
+            onSpellsClick={() => setIsSpellsOpen(true)}
+            onSpellcastingClick={() => setIsSpellcastingOpen(true)}
           />
         </div>
       </div>
@@ -195,6 +194,13 @@ export default function App() {
       <SpellsModal 
         isOpen={isSpellsOpen}
         onClose={() => setIsSpellsOpen(false)}
+        char={char}
+        update={update}
+      />
+
+      <SpellcastingModal 
+        isOpen={isSpellcastingOpen}
+        onClose={() => setIsSpellcastingOpen(false)}
         char={char}
         update={update}
       />

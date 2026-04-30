@@ -5,14 +5,16 @@ interface Props {
   onSummoningClick: () => void;
   onSpiritsClick: () => void;
   onRestClick: () => void;
-  onSpellsClick: () => void;        // ← Ajouté pour le modal Spells
+  onSpellsClick: () => void;        // ← Modal Spells (liste des sorts)
+  onSpellcastingClick: () => void;  // ← Nouveau : Spellcasting
 }
 
 export default function BottomSections({ 
   onSummoningClick, 
   onSpiritsClick, 
   onRestClick,
-  onSpellsClick 
+  onSpellsClick,
+  onSpellcastingClick 
 }: Props) {
   return (
     <div style={{ 
@@ -70,7 +72,7 @@ export default function BottomSections({
         👤 ACTIVE SPIRITS
       </div>
 
-      {/* SPELLS & ASTRAL COMBAT - Maintenant cliquable */}
+      {/* SPELLS */}
       <div 
         onClick={onSpellsClick}
         style={{
@@ -91,7 +93,31 @@ export default function BottomSections({
         onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(103, 232, 249, 0.6)"}
         onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(103, 232, 249, 0.3)"}
       >
-        ✨ SPELLS & ASTRAL COMBAT
+        ✨ SPELLS
+      </div>
+
+      {/* SPELLCASTING */}
+      <div 
+        onClick={onSpellcastingClick}
+        style={{
+          background: "rgba(192, 132, 252, 0.1)",
+          border: "2px solid #c084fc",
+          borderRadius: "12px",
+          padding: "20px 16px",
+          color: "#c084fc",
+          fontWeight: "bold",
+          fontSize: "1.1rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          cursor: "pointer",
+          transition: "all 0.2s",
+          boxShadow: "0 0 15px rgba(192, 132, 252, 0.3)"
+        }}
+        onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(192, 132, 252, 0.6)"}
+        onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(192, 132, 252, 0.3)"}
+      >
+        ⚡ SPELLCASTING
       </div>
 
       {/* ATTACK & COMBAT */}

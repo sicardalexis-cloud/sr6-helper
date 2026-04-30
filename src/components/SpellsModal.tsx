@@ -11,8 +11,10 @@ interface Props {
 
 export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
   const [knownSpells, setKnownSpells] = useState<Spell[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
 
+  // Charger les sorts connus
   useEffect(() => {
     if (char?.knownSpells) {
       const loaded = char.knownSpells
@@ -27,7 +29,9 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
 
     update((draft: any) => {
       if (!draft.knownSpells) draft.knownSpells = [];
-      draft.knownSpells.push(spell.id);
+      if (!draft.knownSpells.includes(spell.id)) {
+        draft.knownSpells.push(spell.id);
+      }
     });
 
     setKnownSpells(prev => [...prev, spell]);
@@ -45,115 +49,117 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
   };
 
   const availableSpells = ALL_SPELLS
-    .filter(spell => !knownSpells.some(s => s.id === spell.id));
+    .filter(spell => !knownSpells.some(s => s.id === spell.id))
+    .filter(spell =>
+      spell.frenchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      spell.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   if (!isOpen) return null;
 
   return (
     <div style={{
-      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-      background: "rgba(0,0,0,0.92)", zIndex: 1000,
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 1000,
       display: "flex", alignItems: "center", justifyContent: "center"
     }}>
       <div style={{
-        background: "#111827", border: "2px solid #c084fc",
-        borderRadius: "16px", width: "94%", maxWidth: "1350px",
-        height: "90vh", overflow: "hidden", display: "flex", flexDirection: "column"
+        background: "#0f172a", width: "95%", maxWidth: "1100px", height: "92vh",
+        borderRadius: "16px", border: "2px solid #67e8f9", overflow: "hidden",
+        display: "flex", flexDirection: "column"
       }}>
-        {/* HEADER minimal */}
-        <div style={{ padding: "10px 24px", borderBottom: "1px solid #334155", display: "flex", justifyContent: "flex-end" }}>
-          <button 
-            onClick={onClose} 
-            style={{ background: "none", border: "none", color: "#f87171", fontSize: "2rem", cursor: "pointer" }}
-          >
+        
+        {/* HEADER */}
+        <div style={{ padding: "16px 24px", background: "#1e2937", borderBottom: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ color: "#67e8f9", margin: 0 }}>📜 Sorts & Grimoire</h2>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#f87171", fontSize: "1.8rem", cursor: "pointer" }}>
             ✕
           </button>
         </div>
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          {/* GAUCHE : SORTS CONNUS */}
-          <div style={{ width: "25%", padding: "20px", borderRight: "1px solid #334155", overflowY: "auto" }}>
-            <h3 style={{ color: "#67e8f9", marginBottom: "16px" }}>
-              📜 Sorts Connus ({knownSpells.length})
-            </h3>
-
-            {knownSpells.length === 0 ? (
-              <p style={{ color: "#94a3b8", textAlign: "center", padding: "60px 20px", fontStyle: "italic" }}>
-                Aucun sort appris pour le moment.
-              </p>
-            ) : (
-              knownSpells.map(spell => (
-                <div
-                  key={spell.id}
+          
+          {/* SORTS CONNUS */}
+          <div style={{ width: "28%", borderRight: "1px solid #334155", display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "12px", background: "#1e2937", textAlign: "center", fontWeight: "bold", color: "#c084fc" }}>
+              Sorts Connus ({knownSpells.length})
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {knownSpells.map(spell => (
+                <div key={spell.id} style={{
+                  background: "#1e2937", padding: "12px", borderRadius: "8px",
+                  border: "1px solid #c084fc", cursor: "pointer",
+                  display: "flex", justifyContent: "space-between", alignItems: "center"
+                }}
                   onClick={() => setSelectedSpell(spell)}
-                  style={{
-                    padding: "12px 16px",
-                    background: selectedSpell?.id === spell.id ? "#1e2937" : "#0f172a",
-                    border: "1px solid #334155",
-                    borderRadius: "10px",
-                    marginBottom: "10px",
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                  }}
                 >
-                  <div>
-                    <strong>{spell.frenchName}</strong>
-                    <div style={{ fontSize: "0.82rem", color: "#94a3b8" }}>{spell.name}</div>
-                  </div>
+                  <span style={{ color: "#e0f2fe" }}>{spell.frenchName}</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); removeSpell(spell.id); }}
-                    style={{ color: "#f87171", background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer" }}
+                    style={{ background: "none", border: "none", color: "#f87171", fontSize: "1.3rem", cursor: "pointer" }}
                   >
                     ✕
                   </button>
                 </div>
-              ))
-            )}
+              ))}
+              {knownSpells.length === 0 && (
+                <div style={{ color: "#64748b", textAlign: "center", padding: "40px 20px" }}>
+                  Aucun sort appris
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* DROITE : SORTS DISPONIBLES (6 colonnes ultra-compactes) */}
-          <div style={{ flex: 1, padding: "16px", overflowY: "auto" }}>
-            <div style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(6, 1fr)", 
-              gap: "8px" 
+          {/* SORTS DISPONIBLES - ultra minimal */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "12px", background: "#1e2937" }}>
+              <input
+                type="text"
+                placeholder="Rechercher un sort..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: "100%", padding: "10px 14px", background: "#334155", border: "none",
+                  borderRadius: "8px", color: "white", fontSize: "1rem"
+                }}
+              />
+            </div>
+
+            <div style={{
+              flex: 1, overflowY: "auto", padding: "12px",
+              display: "grid",
+              gridTemplateColumns: "repeat(6, 1fr)",
+              gap: "6px"
             }}>
               {availableSpells.map(spell => (
                 <div
                   key={spell.id}
                   onClick={() => addSpell(spell)}
                   style={{
-                    padding: "8px 10px",           // largeur et hauteur très réduites
                     background: "#1e2937",
-                    border: "1px solid #334155",
+                    padding: "14px 8px",
                     borderRadius: "8px",
+                    border: "1px solid #334155",
                     cursor: "pointer",
                     transition: "all 0.2s",
-                    minHeight: "52px",             // -30% environ
+                    minHeight: "48px",
                     display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center"
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    fontSize: "0.85rem",
+                    color: "#e0f2fe",
+                    fontWeight: "500"
                   }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = "#67e8f9"}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = "#334155"}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.borderColor = "#67e8f9";
+                    e.currentTarget.style.backgroundColor = "#25344a";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.borderColor = "#334155";
+                    e.currentTarget.style.backgroundColor = "#1e2937";
+                  }}
                 >
-                  <strong style={{ 
-                    color: "#e0f2fe", 
-                    fontSize: "0.92rem", 
-                    lineHeight: "1.2",
-                    display: "block"
-                  }}>
-                    {spell.frenchName}
-                  </strong>
-                  <div style={{ 
-                    fontSize: "0.74rem", 
-                    color: "#94a3b8", 
-                    marginTop: "1px"
-                  }}>
-                    {spell.drain}
-                  </div>
+                  {spell.frenchName}
                 </div>
               ))}
             </div>
