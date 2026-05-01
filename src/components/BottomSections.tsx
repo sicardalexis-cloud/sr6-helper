@@ -5,8 +5,9 @@ interface Props {
   onSummoningClick: () => void;
   onSpiritsClick: () => void;
   onRestClick: () => void;
-  onSpellsClick: () => void;        // ← Modal Spells (liste des sorts)
-  onSpellcastingClick: () => void;  // ← Nouveau : Spellcasting
+  onSpellsClick: () => void;
+  onSpellcastingClick: () => void;
+  onCombatClick: () => void;        // ← Nouveau
 }
 
 export default function BottomSections({ 
@@ -14,7 +15,8 @@ export default function BottomSections({
   onSpiritsClick, 
   onRestClick,
   onSpellsClick,
-  onSpellcastingClick 
+  onSpellcastingClick,
+  onCombatClick                     // ← Ajouté
 }: Props) {
   return (
     <div style={{ 
@@ -120,8 +122,9 @@ export default function BottomSections({
         ⚡ SPELLCASTING
       </div>
 
-      {/* ATTACK & COMBAT */}
+      {/* ATTACK & COMBAT - ACTIF */}
       <div 
+        onClick={onCombatClick}
         style={{
           background: "rgba(251, 191, 36, 0.1)",
           border: "2px solid #fbbf24",
@@ -137,6 +140,8 @@ export default function BottomSections({
           transition: "all 0.2s",
           boxShadow: "0 0 15px rgba(251, 191, 36, 0.3)"
         }}
+        onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(251, 191, 36, 0.6)"}
+        onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(251, 191, 36, 0.3)"}
       >
         ⚔️ ATTACK & COMBAT
       </div>

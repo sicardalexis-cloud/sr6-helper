@@ -13,7 +13,8 @@ import SpiritsModal from "./components/SpiritsModal";
 import SpiritSheetModal from "./components/SpiritSheetModal";
 import HealsAndRestModal from "./components/HealsAndRestModal";
 import SpellsModal from "./components/SpellsModal";
-import SpellcastingModal from "./components/SpellcastingModal";   // ← Nouveau
+import SpellcastingModal from "./components/SpellcastingModal";
+import CombatModal from "./components/CombatModal";   // ← Nouveau
 
 const STORAGE_KEY = 'kage-character';
 
@@ -25,20 +26,17 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
 
-        // Migration dégâts
+        // Migrations
         if (!parsed.normalPhysical && parsed.physical !== undefined) {
           parsed.normalPhysical = parsed.physical;
           delete parsed.physical;
         }
         if (parsed.drainPhysical === undefined) parsed.drainPhysical = 0;
-
-        // Migration sorts
         if (!parsed.knownSpells) parsed.knownSpells = [];
-
-        // Autres migrations
         if (!parsed.statusEffects) parsed.statusEffects = [];
         if (!parsed.activeSpirits) parsed.activeSpirits = [];
         if (!parsed.magicallyHealed) parsed.magicallyHealed = false;
+        if (!parsed.combat) parsed.combat = {};
 
         return parsed;
       } catch (e) {
@@ -59,7 +57,8 @@ export default function App() {
       activeSpirits: [],
       statusEffects: [],
       magicallyHealed: false,
-      knownSpells: []
+      knownSpells: [],
+      combat: {}
     };
   });
 
@@ -68,7 +67,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
 
-  // ==================== UPDATE FUNCTION ====================
   const update = useCallback((fn: (draft: any) => void) => {
     setChar((prev: any) => {
       const draft = { ...prev };
@@ -103,8 +101,9 @@ export default function App() {
   const [isSpiritsOpen, setIsSpiritsOpen] = useState(false);
   const [isSpiritSheetOpen, setIsSpiritSheetOpen] = useState(false);
   const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
-  const [isSpellsOpen, setIsSpellsOpen] = useState(false);           // Liste des sorts
-  const [isSpellcastingOpen, setIsSpellcastingOpen] = useState(false); // Lancer de sorts
+  const [isSpellsOpen, setIsSpellsOpen] = useState(false);
+  const [isSpellcastingOpen, setIsSpellcastingOpen] = useState(false);
+  const [isCombatOpen, setIsCombatOpen] = useState(false);     // ← Nouveau
 
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
@@ -155,6 +154,7 @@ export default function App() {
             onRestClick={() => setIsHealsAndRestOpen(true)}
             onSpellsClick={() => setIsSpellsOpen(true)}
             onSpellcastingClick={() => setIsSpellcastingOpen(true)}
+            onCombatClick={() => setIsCombatOpen(true)}           // ← Nouveau bouton
           />
         </div>
       </div>
@@ -201,6 +201,14 @@ export default function App() {
       <SpellcastingModal 
         isOpen={isSpellcastingOpen}
         onClose={() => setIsSpellcastingOpen(false)}
+        char={char}
+        update={update}
+      />
+
+      {/* Nouveau Modal Combat */}
+      <CombatModal 
+        isOpen={isCombatOpen}
+        onClose={() => setIsCombatOpen(false)}
         char={char}
         update={update}
       />
