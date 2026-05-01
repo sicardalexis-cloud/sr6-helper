@@ -14,7 +14,6 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
 
-  // Charger les sorts connus
   useEffect(() => {
     if (char?.knownSpells) {
       setKnownSpellIds(char.knownSpells);
@@ -28,10 +27,8 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
       if (!draft.knownSpells) draft.knownSpells = [];
       
       if (isKnown) {
-        // Retirer
         draft.knownSpells = draft.knownSpells.filter((id: string) => id !== spell.id);
       } else {
-        // Ajouter
         if (!draft.knownSpells.includes(spell.id)) {
           draft.knownSpells.push(spell.id);
         }
@@ -41,11 +38,10 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
     setSelectedSpell(spell);
   };
 
-  const filteredSpells = ALL_SPELLS
-    .filter(spell =>
-      spell.frenchName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      spell.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredSpells = ALL_SPELLS.filter(spell =>
+    spell.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    spell.frenchName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (!isOpen) return null;
 
@@ -68,6 +64,7 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
           </button>
         </div>
 
+        {/* Recherche */}
         <div style={{ padding: "12px", background: "#1e2937" }}>
           <input
             type="text"
@@ -81,11 +78,11 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
           />
         </div>
 
-        {/* GRILLE UNIQUE */}
+        {/* GRILLE COMPACTE */}
         <div style={{
-          flex: 1, overflowY: "auto", padding: "16px",
+          flex: 1, overflowY: "auto", padding: "12px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
           gap: "10px"
         }}>
           {filteredSpells.map(spell => {
@@ -96,18 +93,16 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
                 onClick={() => toggleSpell(spell)}
                 style={{
                   background: isKnown ? "#1e3a2f" : "#1e2937",
-                  padding: "16px 10px",
+                  padding: "14px 10px",           // réduit
                   borderRadius: "10px",
                   border: isKnown ? "2px solid #22c55e" : "1px solid #334155",
                   cursor: "pointer",
                   transition: "all 0.2s",
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   textAlign: "center",
-                  minHeight: "100px",
-                  position: "relative"
+                  minHeight: "68px",              // beaucoup plus compact
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.borderColor = isKnown ? "#22c55e" : "#67e8f9";
@@ -118,17 +113,13 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
                   e.currentTarget.style.backgroundColor = isKnown ? "#1e3a2f" : "#1e2937";
                 }}
               >
-                <div style={{ fontSize: "1.8rem", marginBottom: "8px" }}>
-                  {isKnown ? "✅" : "📖"}
-                </div>
                 <div style={{ 
                   color: isKnown ? "#86efac" : "#e0f2fe", 
                   fontWeight: "600",
-                  fontSize: "0.95rem"
+                  fontSize: "0.96rem"
                 }}>
                   {spell.name}
                 </div>
-                <small style={{ color: "#94a3b8", marginTop: "4px" }}>{spell.frenchName}</small>
               </div>
             );
           })}
