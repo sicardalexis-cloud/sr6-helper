@@ -43,10 +43,12 @@ const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
 
 export default function SpellcastingModal({ isOpen, onClose, char, update }: Props) {
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
-  const [showSpellList, setShowSpellList] = useState(true); // ← Nouveau état
+  const [showSpellList, setShowSpellList] = useState(true);
+
   const [castingPool, setCastingPool] = useState(10);
   const [drainResistance, setDrainResistance] = useState(6);
-  const [baseDrain, setBaseDrain] = useState(3);
+  const [manualDrain, setManualDrain] = useState(3); // Slider "Drain" indépendant
+
   const [lastResult, setLastResult] = useState<any>(null);
 
   const knownSpells = char?.knownSpells
@@ -69,7 +71,8 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
     const spellHits = countHits(spellRolls);
     const drainHits = countHits(drainRolls);
 
-    const finalDrain = Math.max(0, baseDrain - drainHits);
+    // Formule : Final Drain = Drain (slider) - Drain Resistance Hits (minimum 0)
+    const finalDrain = Math.max(0, manualDrain - drainHits);
 
     let message = "";
     if (spellHits >= 4) message = "Outstanding success! The spell is extremely powerful.";
@@ -98,11 +101,8 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
     setLastResult(null);
   };
 
-  // Toggle liste quand on clique sur le sort sélectionné
   const toggleSpellList = () => {
-    if (selectedSpell) {
-      setShowSpellList(!showSpellList);
-    }
+    if (selectedSpell) setShowSpellList(!showSpellList);
   };
 
   if (!isOpen) return null;
@@ -135,7 +135,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
               overflowY: "auto", 
               padding: "16px", 
               background: "#1a2338",
-              maxHeight: "40vh"
+              maxHeight: "38vh"
             }}>
               <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>Known Spells</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -144,9 +144,9 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                     key={spell.id}
                     onClick={() => { 
                       setSelectedSpell(spell); 
-                      setBaseDrain(parseInt(spell.drain) || 3);
+                      setManualDrain(parseInt(spell.drain) || 3);
                       setLastResult(null); 
-                      if (selectedSpell?.id === spell.id) setShowSpellList(false); // déjà sélectionné → on cache
+                      if (selectedSpell?.id === spell.id) setShowSpellList(false);
                     }}
                     style={{
                       padding: "12px 14px",
@@ -164,7 +164,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
             </div>
           )}
 
-          {/* ZONE PRINCIPALE DE CASTING */}
+          {/* ZONE DE CASTING */}
           <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
             {selectedSpell ? (
               <>
@@ -185,7 +185,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 </div>
                 <p style={{ color: "#94a3b8", marginBottom: "20px" }}>{selectedSpell.frenchName}</p>
 
-                {/* Spell Info */}
+                {/* Spell Info (Drain d'origine du sort) */}
                 <div style={{ 
                   display: "flex", 
                   gap: "20px", 
@@ -200,7 +200,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   <div><strong>Type:</strong> {selectedSpell.type}</div>
                   <div><strong>Range:</strong> {selectedSpell.range}</div>
                   <div><strong>Duration:</strong> {selectedSpell.duration}</div>
-                  <div><strong>Base Drain:</strong> <span style={{ color: "#f87171", fontWeight: "bold" }}>{baseDrain}</span></div>
+                  <div><strong>Spell Drain:</strong> <span style={{ color: "#f87171", fontWeight: "bold" }}>{parseInt(selectedSpell.drain) || 3}</span></div>
                 </div>
 
                 {/* Description */}
@@ -212,13 +212,13 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   marginBottom: "24px",
                   lineHeight: "1.65",
                   color: "#e2e8f0",
-                  maxHeight: "35vh",
+                  maxHeight: "32vh",
                   overflowY: "auto"
                 }}>
                   {selectedSpell.description || "No detailed description available."}
                 </div>
 
-                {/* Sliders + Cast */}
+                {/* Sliders */}
                 <h3 style={{ color: "#67e8f9", margin: "20px 0 12px" }}>Casting Parameters</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
                   <div>
@@ -227,11 +227,11 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   </div>
                   <div>
                     <label>Drain Resistance: <strong>{drainResistance}</strong></label>
-                    <input type="range" min="1" max="20" value={drainResistance} onChange={(e) => setDrainResistance(+e.target.value)} style={{ width: "100%" }} />
+                    <input type="range" min="0" max="20" value={drainResistance} onChange={(e) => setDrainResistance(+e.target.value)} style={{ width: "100%" }} />
                   </div>
                   <div>
-                    <label>Base Drain: <strong>{baseDrain}</strong></label>
-                    <input type="range" min="1" max="12" value={baseDrain} onChange={(e) => setBaseDrain(+e.target.value)} style={{ width: "100%" }} />
+                    <label>Drain: <strong>{manualDrain}</strong></label>
+                    <input type="range" min="0" max="12" value={manualDrain} onChange={(e) => setManualDrain(+e.target.value)} style={{ width: "100%" }} />
                   </div>
                 </div>
 
@@ -239,7 +239,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   onClick={castSpell}
                   style={{
                     width: "100%",
-                    marginTop: "24px",
+                    marginTop: "28px",
                     padding: "16px",
                     background: "#22d3ee",
                     color: "#0f172a",
