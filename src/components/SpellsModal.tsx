@@ -78,12 +78,12 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
           />
         </div>
 
-        {/* GRILLE COMPACTE */}
+        {/* GRILLE ULTRA SERRÉE */}
         <div style={{
-          flex: 1, overflowY: "auto", padding: "12px",
+          flex: 1, overflowY: "auto", padding: "10px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
-          gap: "10px"
+          gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+          gap: "8px"
         }}>
           {filteredSpells.map(spell => {
             const isKnown = knownSpellIds.includes(spell.id);
@@ -93,8 +93,8 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
                 onClick={() => toggleSpell(spell)}
                 style={{
                   background: isKnown ? "#1e3a2f" : "#1e2937",
-                  padding: "14px 10px",           // réduit
-                  borderRadius: "10px",
+                  padding: "10px 8px",           // très serré
+                  borderRadius: "8px",
                   border: isKnown ? "2px solid #22c55e" : "1px solid #334155",
                   cursor: "pointer",
                   transition: "all 0.2s",
@@ -102,7 +102,7 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
                   alignItems: "center",
                   justifyContent: "center",
                   textAlign: "center",
-                  minHeight: "68px",              // beaucoup plus compact
+                  minHeight: "52px",             // juste un peu plus haut que le texte
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.borderColor = isKnown ? "#22c55e" : "#67e8f9";
@@ -116,7 +116,7 @@ export default function SpellsModal({ isOpen, onClose, char, update }: Props) {
                 <div style={{ 
                   color: isKnown ? "#86efac" : "#e0f2fe", 
                   fontWeight: "600",
-                  fontSize: "0.96rem"
+                  fontSize: "1.05rem"
                 }}>
                   {spell.name}
                 </div>
