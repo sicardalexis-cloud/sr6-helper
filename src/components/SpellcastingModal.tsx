@@ -12,15 +12,27 @@ interface Props {
 const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
   const hits = dice.filter((d) => d >= 5).length;
   return (
-    <div style={{ marginBottom: "16px", background: "#1e2937", padding: "14px", borderRadius: "10px" }}>
+    <div style={{ 
+      marginBottom: "16px", 
+      background: "#1e2937", 
+      padding: "14px", 
+      borderRadius: "10px",
+      width: "100%"
+    }}>
       <div style={{ color: "#94a3b8", marginBottom: "10px", fontWeight: "500" }}>{label}</div>
-      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
+      <div style={{ 
+        display: "flex", 
+        gap: "6px", 
+        flexWrap: "wrap", 
+        marginBottom: "8px",
+        justifyContent: "center"
+      }}>
         {dice.map((d, i) => (
           <div
             key={i}
             style={{
-              width: "42px",
-              height: "42px",
+              width: "38px",
+              height: "38px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -28,7 +40,7 @@ const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
               color: d >= 5 ? "#000" : "#fff",
               borderRadius: "8px",
               fontWeight: "bold",
-              fontSize: "1.1rem",
+              fontSize: "1.05rem",
               border: "2px solid #334155",
             }}
           >
@@ -68,7 +80,6 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
     const spellHits = countHits(spellRolls);
     const drainHits = countHits(drainRolls);
 
-    // Formule demandée : Final Drain = Base Drain - Drain Hits (minimum 0)
     const finalDrain = Math.max(0, baseDrain - drainHits);
 
     let message = "";
@@ -103,27 +114,35 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
   return (
     <div style={{
       position: "fixed", inset: 0, background: "rgba(0,0,0,0.95)", zIndex: 2000,
-      display: "flex", alignItems: "center", justifyContent: "center"
+      display: "flex", alignItems: "center", justifyContent: "center", padding: "8px"
     }}>
       <div style={{
-        background: "#0f172a", width: "95%", maxWidth: "1100px", height: "92vh",
+        background: "#0f172a", width: "100%", maxWidth: "1100px", height: "94vh",
         borderRadius: "16px", border: "2px solid #c084fc", overflow: "hidden",
         display: "flex", flexDirection: "column"
       }}>
         
         {/* HEADER */}
-        <div style={{ padding: "16px 24px", background: "#1e2937", borderBottom: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ color: "#c084fc", margin: 0 }}>⚡ Spellcasting</h2>
+        <div style={{ padding: "14px 20px", background: "#1e2937", borderBottom: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h2 style={{ color: "#c084fc", margin: 0, fontSize: "1.35rem" }}>⚡ Spellcasting</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "#f87171", fontSize: "1.8rem", cursor: "pointer" }}>
             ✕
           </button>
         </div>
 
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: window.innerWidth < 768 ? "column" : "row" }}>
           
-          {/* KNOWN SPELLS */}
-          <div style={{ width: "260px", borderRight: "1px solid #334155", overflowY: "auto", padding: "16px", background: "#1a2338" }}>
-            <h3 style={{ color: "#67e8f9", marginBottom: "16px" }}>Known Spells</h3>
+          {/* KNOWN SPELLS - Responsive */}
+          <div style={{ 
+            width: window.innerWidth < 768 ? "100%" : "260px", 
+            borderRight: window.innerWidth < 768 ? "none" : "1px solid #334155", 
+            borderBottom: window.innerWidth < 768 ? "1px solid #334155" : "none",
+            overflowY: "auto", 
+            padding: "16px", 
+            background: "#1a2338",
+            maxHeight: window.innerWidth < 768 ? "35vh" : "none"
+          }}>
+            <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>Known Spells</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {knownSpells.map((spell) => (
                 <div
@@ -149,23 +168,24 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
           </div>
 
           {/* MAIN CASTING AREA */}
-          <div style={{ flex: 1, padding: "24px", overflowY: "auto" }}>
+          <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
             {selectedSpell ? (
               <>
                 <h2 style={{ color: "#c084fc", marginBottom: "6px" }}>{selectedSpell.name}</h2>
-                <p style={{ color: "#94a3b8", marginBottom: "20px" }}>{selectedSpell.frenchName}</p>
+                <p style={{ color: "#94a3b8", marginBottom: "18px" }}>{selectedSpell.frenchName}</p>
 
                 {/* Spell Info */}
                 <div style={{ 
                   display: "flex", 
-                  gap: "24px", 
+                  gap: "16px", 
                   marginBottom: "20px", 
                   flexWrap: "wrap", 
                   color: "#cbd5e1",
                   background: "#1e2937",
-                  padding: "12px 18px",
+                  padding: "12px 16px",
                   borderRadius: "10px",
-                  border: "1px solid #334155"
+                  border: "1px solid #334155",
+                  fontSize: "0.95rem"
                 }}>
                   <div><strong>Type:</strong> {selectedSpell.type}</div>
                   <div><strong>Range:</strong> {selectedSpell.range}</div>
@@ -176,13 +196,13 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 {/* Description */}
                 <div style={{
                   background: "#1e2937",
-                  padding: "20px",
+                  padding: "18px",
                   borderRadius: "10px",
                   border: "1px solid #67e8f9",
                   marginBottom: "24px",
-                  lineHeight: "1.65",
+                  lineHeight: "1.6",
                   color: "#e2e8f0",
-                  maxHeight: "32vh",
+                  maxHeight: "28vh",
                   overflowY: "auto"
                 }}>
                   {selectedSpell.description || "No detailed description available."}
@@ -190,13 +210,13 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
 
                 {/* Sliders */}
                 <h3 style={{ color: "#67e8f9", margin: "20px 0 12px" }}>Casting Parameters</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "20px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
                   <div>
                     <label>Casting Pool: <strong>{castingPool}</strong></label>
                     <input type="range" min="1" max="20" value={castingPool} onChange={(e) => setCastingPool(+e.target.value)} style={{ width: "100%" }} />
                   </div>
                   <div>
-                    <label>Drain Resistance Pool: <strong>{drainResistance}</strong></label>
+                    <label>Drain Resistance: <strong>{drainResistance}</strong></label>
                     <input type="range" min="1" max="20" value={drainResistance} onChange={(e) => setDrainResistance(+e.target.value)} style={{ width: "100%" }} />
                   </div>
                   <div>
@@ -209,7 +229,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   onClick={castSpell}
                   style={{
                     width: "100%",
-                    marginTop: "28px",
+                    marginTop: "24px",
                     padding: "16px",
                     background: "#22d3ee",
                     color: "#0f172a",
@@ -260,7 +280,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 )}
               </>
             ) : (
-              <div style={{ textAlign: "center", color: "#64748b", marginTop: "120px" }}>
+              <div style={{ textAlign: "center", color: "#64748b", marginTop: "80px" }}>
                 Select a spell on the left to cast
               </div>
             )}
