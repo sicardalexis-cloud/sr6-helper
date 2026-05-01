@@ -26,16 +26,16 @@ export default function AttributesPanel({ char, update }: Props) {
     <div style={{
       background: "#1e2937",
       borderRadius: "12px",
-      padding: "20px",
-      marginBottom: "20px",
+      padding: "12px",
+      marginBottom: "16px",
       border: "1px solid #334155"
     }}>
-      <h3 style={{ color: "#67e8f9", marginBottom: "16px" }}>ATTRIBUTES</h3>
+      <h3 style={{ color: "#67e8f9", marginBottom: "10px", fontSize: "1.1rem" }}>ATTRIBUTES</h3>
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-        gap: "12px"
+        gridTemplateColumns: "repeat(auto-fit, minmax(78px, 1fr))",
+        gap: "8px"
       }}>
         {attributesList.map(attr => {
           const value = char.attributes?.[attr] ?? 3;
@@ -44,40 +44,46 @@ export default function AttributesPanel({ char, update }: Props) {
           return (
             <div key={attr} style={{
               background: "#0f172a",
-              borderRadius: "10px",
-              padding: "12px",
+              borderRadius: "8px",
+              padding: "6px 4px 2px 4px",   // très serré verticalement
               textAlign: "center",
-              border: isEditing ? "2px solid #22ff88" : "1px solid #334155"
+              border: isEditing ? "2px solid #22ff88" : "1px solid #334155",
+              minHeight: "50px"
             }}>
-              <div style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "6px" }}>
+              <div style={{ 
+                color: "#94a3b8", 
+                fontSize: "0.78rem", 
+                marginBottom: "1px" 
+              }}>
                 {attr}
               </div>
 
               <div 
                 onClick={() => handleClick(attr)}
                 style={{
-                  fontSize: "2rem",
+                  fontSize: "1.85rem",
                   fontWeight: "bold",
                   color: "#f1f5f9",
                   cursor: "pointer",
-                  padding: "4px 0"
+                  lineHeight: "0.95",     // réduit l'espace sous le chiffre
+                  padding: "0"
                 }}
               >
                 {value}
               </div>
 
               {isEditing && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "center", gap: "6px", marginTop: "4px" }}>
                   <button
                     onClick={() => changeAttribute(attr, -1)}
                     style={{
                       background: "#ef4444",
                       color: "white",
                       border: "none",
-                      width: "36px",
-                      height: "36px",
+                      width: "26px",
+                      height: "26px",
                       borderRadius: "50%",
-                      fontSize: "1.3rem",
+                      fontSize: "1rem",
                       cursor: "pointer"
                     }}
                   >
@@ -89,10 +95,10 @@ export default function AttributesPanel({ char, update }: Props) {
                       background: "#22c55e",
                       color: "white",
                       border: "none",
-                      width: "36px",
-                      height: "36px",
+                      width: "26px",
+                      height: "26px",
                       borderRadius: "50%",
-                      fontSize: "1.3rem",
+                      fontSize: "1rem",
                       cursor: "pointer"
                     }}
                   >
