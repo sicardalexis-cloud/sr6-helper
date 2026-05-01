@@ -34,7 +34,7 @@ export default function AttributesPanel({ char, update }: Props) {
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(78px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(60px, 1fr))",
         gap: "8px"
       }}>
         {attributesList.map(attr => {
