@@ -12,27 +12,15 @@ interface Props {
 const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
   const hits = dice.filter((d) => d >= 5).length;
   return (
-    <div style={{ 
-      marginBottom: "16px", 
-      background: "#1e2937", 
-      padding: "14px", 
-      borderRadius: "10px",
-      width: "100%"
-    }}>
+    <div style={{ marginBottom: "16px", background: "#1e2937", padding: "14px", borderRadius: "10px" }}>
       <div style={{ color: "#94a3b8", marginBottom: "10px", fontWeight: "500" }}>{label}</div>
-      <div style={{ 
-        display: "flex", 
-        gap: "6px", 
-        flexWrap: "wrap", 
-        marginBottom: "8px",
-        justifyContent: "center"
-      }}>
+      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
         {dice.map((d, i) => (
           <div
             key={i}
             style={{
-              width: "38px",
-              height: "38px",
+              width: "42px",
+              height: "42px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -40,7 +28,7 @@ const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
               color: d >= 5 ? "#000" : "#fff",
               borderRadius: "8px",
               fontWeight: "bold",
-              fontSize: "1.05rem",
+              fontSize: "1.1rem",
               border: "2px solid #334155",
             }}
           >
@@ -55,6 +43,7 @@ const DiceDisplay = ({ dice, label }: { dice: number[]; label: string }) => {
 
 export default function SpellcastingModal({ isOpen, onClose, char, update }: Props) {
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+  const [showSpellList, setShowSpellList] = useState(true); // ← Nouveau état
   const [castingPool, setCastingPool] = useState(10);
   const [drainResistance, setDrainResistance] = useState(6);
   const [baseDrain, setBaseDrain] = useState(3);
@@ -109,6 +98,13 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
     setLastResult(null);
   };
 
+  // Toggle liste quand on clique sur le sort sélectionné
+  const toggleSpellList = () => {
+    if (selectedSpell) {
+      setShowSpellList(!showSpellList);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -130,62 +126,76 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
           </button>
         </div>
 
-        <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: window.innerWidth < 768 ? "column" : "row" }}>
+        <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: "column" }}>
           
-          {/* KNOWN SPELLS - Responsive */}
-          <div style={{ 
-            width: window.innerWidth < 768 ? "100%" : "260px", 
-            borderRight: window.innerWidth < 768 ? "none" : "1px solid #334155", 
-            borderBottom: window.innerWidth < 768 ? "1px solid #334155" : "none",
-            overflowY: "auto", 
-            padding: "16px", 
-            background: "#1a2338",
-            maxHeight: window.innerWidth < 768 ? "35vh" : "none"
-          }}>
-            <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>Known Spells</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {knownSpells.map((spell) => (
-                <div
-                  key={spell.id}
-                  onClick={() => { 
-                    setSelectedSpell(spell); 
-                    setBaseDrain(parseInt(spell.drain) || 3);
-                    setLastResult(null); 
-                  }}
-                  style={{
-                    padding: "12px 14px",
-                    background: selectedSpell?.id === spell.id ? "#334155" : "#1e2937",
-                    border: selectedSpell?.id === spell.id ? "2px solid #c084fc" : "1px solid #475569",
-                    borderRadius: "10px",
-                    cursor: "pointer",
-                    color: "#e0f2fe",
-                  }}
-                >
-                  {spell.name}
-                </div>
-              ))}
+          {/* LISTE DES SORTS (masquable) */}
+          {showSpellList && (
+            <div style={{ 
+              borderBottom: "1px solid #334155", 
+              overflowY: "auto", 
+              padding: "16px", 
+              background: "#1a2338",
+              maxHeight: "40vh"
+            }}>
+              <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>Known Spells</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {knownSpells.map((spell) => (
+                  <div
+                    key={spell.id}
+                    onClick={() => { 
+                      setSelectedSpell(spell); 
+                      setBaseDrain(parseInt(spell.drain) || 3);
+                      setLastResult(null); 
+                      if (selectedSpell?.id === spell.id) setShowSpellList(false); // déjà sélectionné → on cache
+                    }}
+                    style={{
+                      padding: "12px 14px",
+                      background: selectedSpell?.id === spell.id ? "#334155" : "#1e2937",
+                      border: selectedSpell?.id === spell.id ? "2px solid #c084fc" : "1px solid #475569",
+                      borderRadius: "10px",
+                      cursor: "pointer",
+                      color: "#e0f2fe",
+                    }}
+                  >
+                    {spell.name}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* MAIN CASTING AREA */}
+          {/* ZONE PRINCIPALE DE CASTING */}
           <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
             {selectedSpell ? (
               <>
-                <h2 style={{ color: "#c084fc", marginBottom: "6px" }}>{selectedSpell.name}</h2>
-                <p style={{ color: "#94a3b8", marginBottom: "18px" }}>{selectedSpell.frenchName}</p>
+                <div 
+                  onClick={toggleSpellList}
+                  style={{ 
+                    cursor: "pointer", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "8px", 
+                    marginBottom: "12px" 
+                  }}
+                >
+                  <h2 style={{ color: "#c084fc", margin: 0 }}>{selectedSpell.name}</h2>
+                  <span style={{ color: "#67e8f9", fontSize: "1.4rem" }}>
+                    {showSpellList ? "▲" : "▼"}
+                  </span>
+                </div>
+                <p style={{ color: "#94a3b8", marginBottom: "20px" }}>{selectedSpell.frenchName}</p>
 
                 {/* Spell Info */}
                 <div style={{ 
                   display: "flex", 
-                  gap: "16px", 
+                  gap: "20px", 
                   marginBottom: "20px", 
                   flexWrap: "wrap", 
                   color: "#cbd5e1",
                   background: "#1e2937",
-                  padding: "12px 16px",
+                  padding: "12px 18px",
                   borderRadius: "10px",
-                  border: "1px solid #334155",
-                  fontSize: "0.95rem"
+                  border: "1px solid #334155"
                 }}>
                   <div><strong>Type:</strong> {selectedSpell.type}</div>
                   <div><strong>Range:</strong> {selectedSpell.range}</div>
@@ -196,19 +206,19 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 {/* Description */}
                 <div style={{
                   background: "#1e2937",
-                  padding: "18px",
+                  padding: "20px",
                   borderRadius: "10px",
                   border: "1px solid #67e8f9",
                   marginBottom: "24px",
-                  lineHeight: "1.6",
+                  lineHeight: "1.65",
                   color: "#e2e8f0",
-                  maxHeight: "28vh",
+                  maxHeight: "35vh",
                   overflowY: "auto"
                 }}>
                   {selectedSpell.description || "No detailed description available."}
                 </div>
 
-                {/* Sliders */}
+                {/* Sliders + Cast */}
                 <h3 style={{ color: "#67e8f9", margin: "20px 0 12px" }}>Casting Parameters</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
                   <div>
@@ -280,8 +290,8 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 )}
               </>
             ) : (
-              <div style={{ textAlign: "center", color: "#64748b", marginTop: "80px" }}>
-                Select a spell on the left to cast
+              <div style={{ textAlign: "center", color: "#64748b", marginTop: "100px" }}>
+                Select a spell to cast
               </div>
             )}
           </div>
