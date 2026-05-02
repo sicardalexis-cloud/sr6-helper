@@ -16,6 +16,7 @@ import SpellsModal from "./components/SpellsModal";
 import SpellcastingModal from "./components/SpellcastingModal";
 import CombatModal from "./components/CombatModal";
 import ExtendedTestModal from "./components/ExtendedTestModal";   // ← Nouveau
+import MagicRoutineModal from "./components/MagicRoutineModal";
 
 const STORAGE_KEY = 'kage-character';
 
@@ -99,7 +100,8 @@ export default function App() {
   const [isSpellsOpen, setIsSpellsOpen] = useState(false);
   const [isSpellcastingOpen, setIsSpellcastingOpen] = useState(false);
   const [isCombatOpen, setIsCombatOpen] = useState(false);
-  const [isExtendedTestOpen, setIsExtendedTestOpen] = useState(false);   // ← Ajouté
+  const [isExtendedTestOpen, setIsExtendedTestOpen] = useState(false);   // ← Nouveau
+  const [isRoutineOpen, setIsRoutineOpen] = useState(false);
 
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
@@ -151,11 +153,12 @@ export default function App() {
             onSpellcastingClick={() => setIsSpellcastingOpen(true)}
             onCombatClick={() => setIsCombatOpen(true)}
             onExtendedTestClick={() => setIsExtendedTestOpen(true)}   // ← Ajouté
+            onRoutineClick={() => setIsRoutineOpen(true)}
           />
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* ==================== MODALS ==================== */}
       <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} addSpirit={addSpirit} update={update} />
       <SpiritsModal isOpen={isSpiritsOpen} onClose={() => setIsSpiritsOpen(false)} activeSpirits={char.activeSpirits || []} update={update} onViewSpirit={openSpiritSheet} />
       <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} />
@@ -163,6 +166,7 @@ export default function App() {
       <SpellsModal isOpen={isSpellsOpen} onClose={() => setIsSpellsOpen(false)} char={char} update={update} />
       <SpellcastingModal isOpen={isSpellcastingOpen} onClose={() => setIsSpellcastingOpen(false)} char={char} update={update} />
       <CombatModal isOpen={isCombatOpen} onClose={() => setIsCombatOpen(false)} char={char} update={update} />
+      <MagicRoutineModal   isOpen={isRoutineOpen}   onClose={() => setIsRoutineOpen(false)}   char={char}   update={update} addSpirit={addSpirit}  />
 
       {/* Extended Test Modal */}
       <ExtendedTestModal 
