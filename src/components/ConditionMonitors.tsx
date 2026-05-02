@@ -130,7 +130,7 @@ export default function ConditionMonitors({ char, update }: Props) {
         </button>
       </div>
 
-      {/* Damage Monitors */}
+      {/* Moniteurs */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
@@ -197,7 +197,6 @@ export default function ConditionMonitors({ char, update }: Props) {
           </div>
         )}
 
-        {/* Active Statuses */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           {activeStatuses.map((s: any) => {
             const status = ALL_STATUSES.find(st => st.id === s.id);

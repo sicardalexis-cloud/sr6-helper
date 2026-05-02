@@ -14,7 +14,8 @@ import SpiritSheetModal from "./components/SpiritSheetModal";
 import HealsAndRestModal from "./components/HealsAndRestModal";
 import SpellsModal from "./components/SpellsModal";
 import SpellcastingModal from "./components/SpellcastingModal";
-import CombatModal from "./components/CombatModal";   // ← Nouveau
+import CombatModal from "./components/CombatModal";
+import ExtendedTestModal from "./components/ExtendedTestModal";   // ← Nouveau
 
 const STORAGE_KEY = 'kage-character';
 
@@ -26,7 +27,6 @@ export default function App() {
       try {
         const parsed = JSON.parse(saved);
 
-        // Migrations
         if (!parsed.normalPhysical && parsed.physical !== undefined) {
           parsed.normalPhysical = parsed.physical;
           delete parsed.physical;
@@ -44,7 +44,6 @@ export default function App() {
       }
     }
 
-    // Valeurs par défaut
     return {
       name: "KAGE",
       attributes: { BOD: 3, AGI: 3, REA: 3, STR: 3, WIL: 3, LOG: 3, INT: 3, CHA: 3, MAGIC: 6, ESSENCE: 6 },
@@ -62,7 +61,6 @@ export default function App() {
     };
   });
 
-  // Sauvegarde automatique
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
   }, [char]);
@@ -75,7 +73,6 @@ export default function App() {
     });
   }, []);
 
-  // ==================== FONCTIONS ESPRITS ====================
   const addSpirit = useCallback((spiritData: any) => {
     const newSpirit = {
       ...spiritData,
@@ -83,12 +80,10 @@ export default function App() {
       optionalPowers: [],
     };
 
-    setTimeout(() => {
-      update((draft) => {
-        if (!draft.activeSpirits) draft.activeSpirits = [];
-        draft.activeSpirits.push(newSpirit);
-      });
-    }, 30);
+    update((draft) => {
+      if (!draft.activeSpirits) draft.activeSpirits = [];
+      draft.activeSpirits.push(newSpirit);
+    });
   }, [update]);
 
   const openSpiritSheet = useCallback((spirit: any) => {
@@ -103,7 +98,8 @@ export default function App() {
   const [isHealsAndRestOpen, setIsHealsAndRestOpen] = useState(false);
   const [isSpellsOpen, setIsSpellsOpen] = useState(false);
   const [isSpellcastingOpen, setIsSpellcastingOpen] = useState(false);
-  const [isCombatOpen, setIsCombatOpen] = useState(false);     // ← Nouveau
+  const [isCombatOpen, setIsCombatOpen] = useState(false);
+  const [isExtendedTestOpen, setIsExtendedTestOpen] = useState(false);   // ← Ajouté
 
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
@@ -115,7 +111,6 @@ export default function App() {
     }}>
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
 
-        {/* Nom du Personnage */}
         <div style={{ textAlign: "center", marginBottom: "25px" }}>
           <input
             type="text"
@@ -154,63 +149,25 @@ export default function App() {
             onRestClick={() => setIsHealsAndRestOpen(true)}
             onSpellsClick={() => setIsSpellsOpen(true)}
             onSpellcastingClick={() => setIsSpellcastingOpen(true)}
-            onCombatClick={() => setIsCombatOpen(true)}           // ← Nouveau bouton
+            onCombatClick={() => setIsCombatOpen(true)}
+            onExtendedTestClick={() => setIsExtendedTestOpen(true)}   // ← Ajouté
           />
         </div>
       </div>
 
-      {/* ==================== MODALS ==================== */}
-      <SummoningModal 
-        isOpen={isSummoningOpen}
-        onClose={() => setIsSummoningOpen(false)}
-        addSpirit={addSpirit}
-        update={update}
-      />
+      {/* MODALS */}
+      <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} addSpirit={addSpirit} update={update} />
+      <SpiritsModal isOpen={isSpiritsOpen} onClose={() => setIsSpiritsOpen(false)} activeSpirits={char.activeSpirits || []} update={update} onViewSpirit={openSpiritSheet} />
+      <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} />
+      <HealsAndRestModal isOpen={isHealsAndRestOpen} onClose={() => setIsHealsAndRestOpen(false)} char={char} update={update} />
+      <SpellsModal isOpen={isSpellsOpen} onClose={() => setIsSpellsOpen(false)} char={char} update={update} />
+      <SpellcastingModal isOpen={isSpellcastingOpen} onClose={() => setIsSpellcastingOpen(false)} char={char} update={update} />
+      <CombatModal isOpen={isCombatOpen} onClose={() => setIsCombatOpen(false)} char={char} update={update} />
 
-      <SpiritsModal 
-        isOpen={isSpiritsOpen}
-        onClose={() => setIsSpiritsOpen(false)}
-        activeSpirits={char.activeSpirits || []}
-        update={update}
-        onViewSpirit={openSpiritSheet}
-      />
-
-      <SpiritSheetModal 
-        isOpen={isSpiritSheetOpen}
-        onClose={() => {
-          setIsSpiritSheetOpen(false);
-          setSelectedSpirit(null);
-        }}
-        spirit={selectedSpirit}
-      />
-
-      <HealsAndRestModal 
-        isOpen={isHealsAndRestOpen}
-        onClose={() => setIsHealsAndRestOpen(false)}
-        char={char}
-        update={update}
-      />
-
-      <SpellsModal 
-        isOpen={isSpellsOpen}
-        onClose={() => setIsSpellsOpen(false)}
-        char={char}
-        update={update}
-      />
-
-      <SpellcastingModal 
-        isOpen={isSpellcastingOpen}
-        onClose={() => setIsSpellcastingOpen(false)}
-        char={char}
-        update={update}
-      />
-
-      {/* Nouveau Modal Combat */}
-      <CombatModal 
-        isOpen={isCombatOpen}
-        onClose={() => setIsCombatOpen(false)}
-        char={char}
-        update={update}
+      {/* Extended Test Modal */}
+      <ExtendedTestModal 
+        isOpen={isExtendedTestOpen} 
+        onClose={() => setIsExtendedTestOpen(false)} 
       />
     </div>
   );
