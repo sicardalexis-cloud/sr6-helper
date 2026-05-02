@@ -113,7 +113,7 @@ export const ALL_STATUSES: StatusEffect[] = [
     name: "Invisible (Improved)",
     frenchName: "Invisible (Amélioré)",
     color: "#22d3ee",
-    description: "The same as Invisibility, but it also affects cameras and other technological ways of seeing.",
+    description: "The go-to status for sneak thieves. Characters are less visible to living and sentient beings. The number after the status indicates the threshold people must hit on a Perception test to notice the character with this status.",
   },
   {
     id: "nauseated",
