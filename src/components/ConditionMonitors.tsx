@@ -114,12 +114,23 @@ export default function ConditionMonitors({ char, update }: Props) {
         <div style={{ color: totalPenalty > 0 ? "#ef4444" : "#4ade80", fontWeight: "bold", fontSize: "1.1rem" }}>
           Penalty: {totalPenalty > 0 ? `-${totalPenalty}` : "0"}
         </div>
-        <button onClick={markMagicalHealing} style={{ padding: "6px 16px", background: "#c084fc", color: "#000", border: "none", borderRadius: "9999px", fontWeight: "bold", cursor: "pointer" }}>
-          ✨ Soins Magiques
+        <button 
+          onClick={markMagicalHealing} 
+          style={{ 
+            padding: "6px 16px", 
+            background: "#c084fc", 
+            color: "#000", 
+            border: "none", 
+            borderRadius: "9999px", 
+            fontWeight: "bold", 
+            cursor: "pointer" 
+          }}
+        >
+          ✨ Magical Healing
         </button>
       </div>
 
-      {/* Moniteurs */}
+      {/* Damage Monitors */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "24px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
@@ -160,7 +171,7 @@ export default function ConditionMonitors({ char, update }: Props) {
               cursor: "pointer"
             }}
           >
-            + Ajouter status
+            + Add Status
           </button>
         </div>
 
@@ -186,7 +197,7 @@ export default function ConditionMonitors({ char, update }: Props) {
           </div>
         )}
 
-        {/* Statuts actifs */}
+        {/* Active Statuses */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           {activeStatuses.map((s: any) => {
             const status = ALL_STATUSES.find(st => st.id === s.id);
@@ -233,7 +244,7 @@ export default function ConditionMonitors({ char, update }: Props) {
                       </p>
                     )}
 
-                    <label>Niveau : <strong>{s.value || 1}</strong></label>
+                    <label>Level: <strong>{s.value || 1}</strong></label>
                     <input
                       type="range"
                       min="1"
