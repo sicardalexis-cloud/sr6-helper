@@ -8,8 +8,8 @@ interface ActiveSpirit {
   servicesRemaining: number;
   conditionDamage: number;
   invocationDate: string;
-  solarPhase: "Day" | "Night";
-  solarTokens: number;
+  solarPhase?: "Day" | "Night";
+  solarTokens: number;        // 0 à 2 normalement
 }
 
 interface Props {
@@ -34,7 +34,7 @@ export default function SpiritsModal({
 
   const updateSpirit = (id: string, updates: Partial<ActiveSpirit>) => {
     update((draft: any) => {
-      if (!draft.activeSpirits) return;
+      if (!draft.activeSpirits) draft.activeSpirits = [];
       const index = draft.activeSpirits.findIndex((s: ActiveSpirit) => s.id === id);
       if (index !== -1) {
         draft.activeSpirits[index] = { ...draft.activeSpirits[index], ...updates };
@@ -51,16 +51,19 @@ export default function SpiritsModal({
     }
   };
 
-  const advanceSolarPhase = () => {
+    const advanceSolarPhase = () => {
     update((draft: any) => {
       if (!draft.activeSpirits || !Array.isArray(draft.activeSpirits)) return;
 
       draft.activeSpirits = draft.activeSpirits
-        .map((spirit: ActiveSpirit) => ({           // ← corrigé
-          ...spirit,
-          solarTokens: Math.max(0, spirit.solarTokens - 1)
-        }))
-        .filter((spirit: ActiveSpirit) => spirit.solarTokens > 0);  // ← corrigé
+        .map((spirit: ActiveSpirit) => {
+          const newTokens = Math.max(0, (spirit.solarTokens || 0) - 1);
+          return {
+            ...spirit,
+            solarTokens: newTokens,
+          };
+        })
+        .filter((spirit: ActiveSpirit) => spirit.solarTokens > 0);   // ← CHANGEMENT ICI
     });
   };
 
@@ -84,6 +87,8 @@ export default function SpiritsModal({
         ) : (
           activeSpirits.map((spirit) => {
             const maxCM = 8 + Math.ceil(spirit.force / 2);
+            const tokens = spirit.solarTokens ?? 2;
+
             return (
               <div key={spirit.id} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
@@ -98,7 +103,7 @@ export default function SpiritsModal({
 
                 <div style={{ display: "flex", gap: "20px", marginBottom: "12px", color: "#94a3b8" }}>
                   <div>Services : <strong>{spirit.servicesRemaining}</strong></div>
-                  <div>Solar Tokens : <strong>{spirit.solarTokens}/2</strong></div>
+                  <div>Solar Tokens : <strong style={{ color: tokens > 0 ? "#22c55e" : "#f87171" }}>{tokens}/2</strong></div>
                 </div>
 
                 <div style={{ marginBottom: "12px" }}>
@@ -113,7 +118,7 @@ export default function SpiritsModal({
                         }}
                         style={{
                           width: "28px", height: "28px", border: "2px solid #475569",
-                          borderRadius: "6px", background: i < spirit.conditionDamage ? "#ef4444" : "#1e2937",
+                          borderRadius: "6px", background: i < (spirit.conditionDamage || 0) ? "#ef4444" : "#1e2937",
                           cursor: "pointer"
                         }}
                       />
@@ -124,6 +129,9 @@ export default function SpiritsModal({
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.max(0, spirit.servicesRemaining - 1) })} style={{ flex: 1, padding: "8px", background: "#334155", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>− Service</button>
                   <button onClick={() => updateSpirit(spirit.id, { servicesRemaining: Math.min(12, spirit.servicesRemaining + 1) })} style={{ flex: 1, padding: "8px", background: "#334155", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>+ Service</button>
+                  
+                  <button onClick={() => updateSpirit(spirit.id, { solarTokens: Math.min(2, (spirit.solarTokens || 0) + 1) })} style={{ padding: "8px 12px", background: "#eab308", border: "none", borderRadius: "6px", color: "#000", cursor: "pointer" }}>+ Token</button>
+                  
                   <button onClick={() => deleteSpirit(spirit.id)} style={{ padding: "8px 16px", background: "#ef4444", border: "none", borderRadius: "6px", color: "white", cursor: "pointer" }}>Supprimer</button>
                 </div>
               </div>
@@ -136,7 +144,7 @@ export default function SpiritsModal({
             onClick={advanceSolarPhase}
             style={{ width: "100%", padding: "14px", marginTop: "16px", background: "#334155", color: "#94a3b8", border: "none", borderRadius: "8px", fontWeight: "bold" }}
           >
-            Avancer Phase Solaire
+            Avancer Phase Solaire (consomme 1 token par esprit)
           </button>
         )}
 

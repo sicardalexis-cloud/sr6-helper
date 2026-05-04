@@ -362,17 +362,19 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             force: step.summon.force,
             servicesRemaining: services,
             conditionDamage: 0,
+            solarTokens: 2, 
             invocationDate: new Date().toLocaleDateString("en-US"),
           });
         }
       } 
-      else if (step.type === "cast" && step.cast && step.cast.spellId) {
+            else if (step.type === "cast" && step.cast && step.cast.spellId) {
         const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
         if (!spell) continue;
 
         let attempts = 0;
         let stepDrain = 0;
         let spellHits = 0;
+        let effectiveHits = 0;
         const allAttempts: any[] = [];
 
         const autoRetry = step.cast.autoRetry || false;
@@ -394,7 +396,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           spellHits = countHits(spellRolls);
           const drainHits = countHits(drainRolls);
 
-          let effectiveHits = spellHits;
+          effectiveHits = spellHits;
           if (step.cast.hitsIncreaseDrain) {
             const threshold = step.cast.hitThreshold || 2;
             const maxHits = step.cast.maxHits || 8;
@@ -410,15 +412,9 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           if (spellHits >= minHits || !autoRetry || drain >= maxDrainThreshold) break;
         } while (true);
 
-                        // === BONUS PERSISTANTS WIL / TDA ===
-        let bonusHits = spellHits;
-        if (step.cast.hitsIncreaseDrain) {
-          const threshold = step.cast.hitThreshold || 2;
-          const maxHits = step.cast.maxHits || 8;
-          bonusHits = Math.min(spellHits, maxHits);
-        }
+        // === BONUS PERSISTANTS WIL / TDA ===
+        let bonusHits = effectiveHits;   // ← on utilise la valeur limitée
 
-        // On garde seulement le plus gros boost de la routine (pas cumulatif)
         if (step.cast.increaseWIL) {
           const baseWIL = char.attributes?.WIL ?? 3;
           currentWIL = Math.max(currentWIL, baseWIL + bonusHits);
@@ -452,7 +448,8 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           stepNumber: i + 1, 
           type: "cast", 
           spellName: spell.name, 
-          spellHits, 
+          spellHits: effectiveHits,     // ← Valeur limitée pour l'affichage
+          rawHits: spellHits,           // info brute (optionnel)
           drain: stepDrain, 
           attempts, 
           penalty,
