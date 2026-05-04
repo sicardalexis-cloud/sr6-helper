@@ -410,22 +410,25 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           if (spellHits >= minHits || !autoRetry || drain >= maxDrainThreshold) break;
         } while (true);
 
-        // === BONUS PERSISTANTS WIL / TDA ===
+                        // === BONUS PERSISTANTS WIL / TDA ===
         let bonusHits = spellHits;
-
         if (step.cast.hitsIncreaseDrain) {
           const threshold = step.cast.hitThreshold || 2;
           const maxHits = step.cast.maxHits || 8;
-          const effectiveHits = Math.min(spellHits, maxHits);
-          bonusHits = effectiveHits;   // ← On utilise les hits limités pour le bonus
+          bonusHits = Math.min(spellHits, maxHits);
         }
 
+        // On garde seulement le plus gros boost de la routine (pas cumulatif)
         if (step.cast.increaseWIL) {
-          currentWIL += bonusHits;
+          const baseWIL = char.attributes?.WIL ?? 3;
+          currentWIL = Math.max(currentWIL, baseWIL + bonusHits);
           setRoutineWIL(currentWIL);
         }
         if (step.cast.increaseTDA) {
-          currentTDA += bonusHits;
+          const baseTDA = routineTradition === "shamanic" 
+            ? (char.attributes?.CHA ?? 3) 
+            : (char.attributes?.LOG ?? 3);
+          currentTDA = Math.max(currentTDA, baseTDA + bonusHits);
           setRoutineTDA(currentTDA);
         }
 
