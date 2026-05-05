@@ -154,7 +154,7 @@ function StepConfigModal({ isOpen, onClose, step, index, onSave, knownSpells }: 
             {localStep.cast.hitsIncreaseDrain && (
               <>
                 <div style={{ marginBottom: "16px" }}>
-                  <label>Hit Threshold (no extra drain below) : <strong>{localStep.cast.hitThreshold || 2}</strong></label>
+                  <label>Hit Threshold (extra drain if hits are above) : <strong>{localStep.cast.hitThreshold || 2}</strong></label>
                   <input type="range" min="0" max="10" value={localStep.cast.hitThreshold || 2} onChange={e => updateCast({ hitThreshold: Number(e.target.value) })} style={{ width: "100%" }} />
                 </div>
 
@@ -284,7 +284,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
   const rollDice = (pool: number) => Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
   const countHits = (rolls: number[]) => rolls.filter(d => d >= 5).length;
 
-      const runRoutine = async () => {
+               const runRoutine = async () => {
     if (steps.length === 0) return;
 
     // Réinitialisation aux valeurs de base
@@ -308,13 +308,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
       let penalty = Math.floor(drain / 3);
       const baseDrainResistancePool = currentWIL + currentTDA;
 
-      if (step.type === "cast" && step.cast?.caster === "spirit" && generated.length > 0) {
-        const lastSpirit = generated[generated.length - 1];
-        if (lastSpirit.conditionDamage !== undefined) {
-          penalty = Math.floor(lastSpirit.conditionDamage / 3);
-        }
-      }
-
+      // ==================== SUMMON ====================
       if (step.type === "summon" && step.summon) {
         let attempts = 0;
         let stepDrain = 0;
@@ -323,7 +317,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
         const autoRetry = step.summon.autoRetry || false;
         const minServices = step.summon.minServices || 1;
-        const currentConjuringPool = Math.max(1, step.summon.conjuringPool - penalty);
+        const currentConjuringPool = Math.max(1, (step.summon.conjuringPool || 8) - penalty);
         const currentDrainResistancePool = Math.max(1, baseDrainResistancePool - penalty);
 
         do {
@@ -362,12 +356,13 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             force: step.summon.force,
             servicesRemaining: services,
             conditionDamage: 0,
-            solarTokens: 2, 
+            solarTokens: 2,
             invocationDate: new Date().toLocaleDateString("en-US"),
           });
         }
       } 
-            else if (step.type === "cast" && step.cast && step.cast.spellId) {
+           // ==================== CAST ====================
+      else if (step.type === "cast" && step.cast && step.cast.spellId) {
         const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
         if (!spell) continue;
 
@@ -379,12 +374,17 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
         const autoRetry = step.cast.autoRetry || false;
         const minHits = step.cast.minHits || 2;
+
         let currentCastingPool = Math.max(1, (step.cast.castingPool || 10) - penalty);
         let currentDrainResistancePool = Math.max(1, baseDrainResistancePool - penalty);
 
+        // Gestion caster = esprit
         if (step.cast.caster === "spirit" && generated.length > 0) {
           const lastSpirit = generated[generated.length - 1];
           if (lastSpirit.force) currentDrainResistancePool = lastSpirit.force * 2;
+          if (lastSpirit.conditionDamage !== undefined) {
+            penalty = Math.floor(lastSpirit.conditionDamage / 3);
+          }
         }
 
         do {
@@ -396,14 +396,15 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           spellHits = countHits(spellRolls);
           const drainHits = countHits(drainRolls);
 
-          effectiveHits = spellHits;
           if (step.cast.hitsIncreaseDrain) {
             const threshold = step.cast.hitThreshold || 2;
             const maxHits = step.cast.maxHits || 8;
             effectiveHits = Math.min(spellHits, maxHits);
             const extraHits = Math.max(0, effectiveHits - threshold);
-            stepDrain = Math.max(0, parseInt(spell.drain) || 3) + extraHits;
+            const increasedDrain = (parseInt(spell.drain) || 3) + extraHits;
+            stepDrain = Math.max(0, increasedDrain - drainHits);   // ← FIX ICI
           } else {
+            effectiveHits = spellHits;
             stepDrain = Math.max(0, (parseInt(spell.drain) || 3) - drainHits);
           }
 
@@ -412,8 +413,8 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           if (spellHits >= minHits || !autoRetry || drain >= maxDrainThreshold) break;
         } while (true);
 
-        // === BONUS PERSISTANTS WIL / TDA ===
-        let bonusHits = effectiveHits;   // ← on utilise la valeur limitée
+        // Bonus persistants WIL / TDA
+        let bonusHits = step.cast.hitsIncreaseDrain ? effectiveHits : spellHits;
 
         if (step.cast.increaseWIL) {
           const baseWIL = char.attributes?.WIL ?? 3;
@@ -448,8 +449,8 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           stepNumber: i + 1, 
           type: "cast", 
           spellName: spell.name, 
-          spellHits: effectiveHits,     // ← Valeur limitée pour l'affichage
-          rawHits: spellHits,           // info brute (optionnel)
+          spellHits: effectiveHits,
+          rawHits: spellHits,
           drain: stepDrain, 
           attempts, 
           penalty,
@@ -589,10 +590,17 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             const result = stepResults.find(r => r.stepNumber === i + 1);
             return (
               <div key={i} style={{ background: "#1e2937", padding: "16px", marginBottom: "12px", borderRadius: "12px", border: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div onClick={() => openStepConfig(i)} style={{ cursor: "pointer", flex: 1 }}>
+                                <div onClick={() => openStepConfig(i)} style={{ cursor: "pointer", flex: 1 }}>
                   <strong>Step {i+1} — {step.type.toUpperCase()}</strong>
+                  
+                  {/* Nom du sort pour CAST */}
                   {step.type === "cast" && step.cast?.spellId && (
                     <span> → {ALL_SPELLS.find(s => s.id === step.cast.spellId)?.name}</span>
+                  )}
+                  
+                  {/* Type d'esprit pour SUMMON */}
+                  {step.type === "summon" && step.summon?.spiritType && (
+                    <span> → {step.summon.spiritType.toUpperCase()}</span>
                   )}
                 </div>
 
