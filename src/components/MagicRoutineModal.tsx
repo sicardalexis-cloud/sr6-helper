@@ -139,17 +139,22 @@ function StepConfigModal({ isOpen, onClose, step, index, onSave, knownSpells }: 
               </label>
             </div>
 
-            <div style={{ marginBottom: "16px", display: "flex", gap: "20px" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
-                <input type="checkbox" checked={localStep.cast.increaseWIL || false} onChange={e => updateCast({ increaseWIL: e.target.checked })} />
-                <span>Augmente le WIL du nombre de hits (persistant)</span>
-              </label>
+            <div style={{ marginBottom: "16px", display: "flex", gap: "20px", flexWrap: "wrap" }}>
+  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
+    <input type="checkbox" checked={localStep.cast.increaseWIL || false} onChange={e => updateCast({ increaseWIL: e.target.checked })} />
+    <span>Augmente le WIL (persist)</span>
+  </label>
 
-              <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
-                <input type="checkbox" checked={localStep.cast.increaseTDA || false} onChange={e => updateCast({ increaseTDA: e.target.checked })} />
-                <span>Augmente le TDA du nombre de hits (persistant)</span>
-              </label>
-            </div>
+  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
+    <input type="checkbox" checked={localStep.cast.increaseTDA || false} onChange={e => updateCast({ increaseTDA: e.target.checked })} />
+    <span>Augmente le TDA (persist)</span>
+  </label>
+
+  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", flex: 1 }}>
+    <input type="checkbox" checked={localStep.cast.increaseBOD || false} onChange={e => updateCast({ increaseBOD: e.target.checked })} />
+    <span>Augmente le BOD (persist)</span>
+  </label>
+</div>
 
             {localStep.cast.hitsIncreaseDrain && (
               <>
@@ -184,7 +189,13 @@ function StepConfigModal({ isOpen, onClose, step, index, onSave, knownSpells }: 
   );
 }
 
-export default function MagicRoutineModal({ isOpen, onClose, char, update, addSpirit }: Props) {
+export default function MagicRoutineModal({ 
+  isOpen, 
+  onClose, 
+  char, 
+  update, 
+  addSpirit 
+}: Props) {     // ← on enlève le : React.ReactElement pour l'instant
   const [steps, setSteps] = useState<any[]>([]);
   const [totalDrain, setTotalDrain] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
@@ -194,6 +205,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
   const [routineWIL, setRoutineWIL] = useState<number>(char.attributes?.WIL ?? 3);
   const [routineTDA, setRoutineTDA] = useState<number>(6);
+  const [routineBOD, setRoutineBOD] = useState<number>(char.attributes?.BOD ?? 3);
   const [maxDrainThreshold, setMaxDrainThreshold] = useState<number>(12);
   const [maxSpiritDrain, setMaxSpiritDrain] = useState<number>(8);
 
@@ -214,6 +226,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           setSteps(data.steps || []);
           setRoutineWIL(data.routineWIL ?? char.attributes?.WIL ?? 3);
           setRoutineTDA(data.routineTDA ?? 6);
+          setRoutineBOD(data.routineBOD ?? char.attributes?.BOD ?? 3);
           setMaxDrainThreshold(data.maxDrainThreshold ?? 12);
           setMaxSpiritDrain(data.maxSpiritDrain ?? 8);
           setRoutineTradition(data.routineTradition || "hermetic");
@@ -223,11 +236,19 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
   }, [isOpen, char]);
 
   useEffect(() => {
-    if (isOpen) {
-      const dataToSave = { steps, routineWIL, routineTDA, maxDrainThreshold, maxSpiritDrain, routineTradition };
-      localStorage.setItem(ROUTINE_KEY, JSON.stringify(dataToSave));
-    }
-  }, [steps, routineWIL, routineTDA, maxDrainThreshold, maxSpiritDrain, routineTradition, isOpen]);
+  if (isOpen) {
+    const dataToSave = { 
+      steps, 
+      routineWIL, 
+      routineTDA, 
+      routineBOD,           // ← AJOUTÉ
+      maxDrainThreshold, 
+      maxSpiritDrain, 
+      routineTradition 
+    };
+    localStorage.setItem(ROUTINE_KEY, JSON.stringify(dataToSave));
+  }
+}, [steps, routineWIL, routineTDA, routineBOD, maxDrainThreshold, maxSpiritDrain, routineTradition, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -240,11 +261,12 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
       // Réinitialisation selon la tradition
       setRoutineWIL(char.attributes?.WIL ?? 3);
-      if (routineTradition === "shamanic") {
-        setRoutineTDA(char.attributes?.CHA ?? 3);
-      } else {
-        setRoutineTDA(char.attributes?.LOG ?? 3);
-      }
+if (routineTradition === "shamanic") {
+  setRoutineTDA(char.attributes?.CHA ?? 3);
+} else {
+  setRoutineTDA(char.attributes?.LOG ?? 3);
+}
+setRoutineBOD(char.attributes?.BOD ?? 3);     // ← AJOUTÉ
     }
   }, [isOpen, char, routineTradition]);
 
@@ -256,8 +278,28 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
   };
 
   const addCastStep = () => {
-    setSteps(prev => [...prev, { type: "cast", cast: { spellId: "", caster: "mage", castingPool: 10, minHits: 2, autoRetry: false } }]);
-  };
+  setSteps(prev => [...prev, { 
+    type: "cast", 
+    cast: { 
+      spellId: "", 
+      caster: "mage", 
+      castingPool: 10, 
+      minHits: 2, 
+      autoRetry: false,
+      hitsIncreaseDrain: false,
+      increaseWIL: false,
+      increaseTDA: false,
+      increaseBOD: false   // ← AJOUTÉ
+    } 
+  }]);
+};
+
+const addRestStep = () => {
+  setSteps(prev => [...prev, { 
+    type: "rest", 
+    rest: { hours: 1 } 
+  }]);
+};
 
   const removeStep = (index: number) => {
     setSteps(prev => prev.filter((_, i) => i !== index));
@@ -274,11 +316,12 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
     setIsRunning(false);
 
     setRoutineWIL(char.attributes?.WIL ?? 3);
-    if (routineTradition === "shamanic") {
-      setRoutineTDA(char.attributes?.CHA ?? 3);
-    } else {
-      setRoutineTDA(char.attributes?.LOG ?? 3);
-    }
+if (routineTradition === "shamanic") {
+  setRoutineTDA(char.attributes?.CHA ?? 3);
+} else {
+  setRoutineTDA(char.attributes?.LOG ?? 3);
+}
+setRoutineBOD(char.attributes?.BOD ?? 3);     // ← AJOUTÉ
   };
 
   const rollDice = (pool: number) => Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
@@ -289,12 +332,14 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
     // Réinitialisation aux valeurs de base
     let currentWIL = char.attributes?.WIL ?? 3;
-    let currentTDA = routineTradition === "shamanic" 
-      ? (char.attributes?.CHA ?? 3) 
-      : (char.attributes?.LOG ?? 3);
+let currentTDA = routineTradition === "shamanic" 
+  ? (char.attributes?.CHA ?? 3) 
+  : (char.attributes?.LOG ?? 3);
+let currentBOD = char.attributes?.BOD ?? 3;
 
-    setRoutineWIL(currentWIL);
-    setRoutineTDA(currentTDA);
+setRoutineWIL(currentWIL);
+setRoutineTDA(currentTDA);
+setRoutineBOD(currentBOD);        // ← AJOUTÉ
 
     setIsRunning(true);
     let drain = 0;
@@ -308,43 +353,52 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
       let penalty = Math.floor(drain / 3);
       const baseDrainResistancePool = currentWIL + currentTDA;
 
-      // ==================== SUMMON ====================
+               // ==================== SUMMON ====================
       if (step.type === "summon" && step.summon) {
         let attempts = 0;
-        let stepDrain = 0;
+        let totalDrainThisStep = 0;
         let services = 0;
         const allAttempts: any[] = [];
 
-        const autoRetry = step.summon.autoRetry || false;
-        const minServices = step.summon.minServices || 1;
-        const currentConjuringPool = Math.max(1, (step.summon.conjuringPool || 8) - penalty);
-        const currentDrainResistancePool = Math.max(1, baseDrainResistancePool - penalty);
+        const autoRetry = step.summon.autoRetry ?? true;
+        const minServices = step.summon.minServices ?? 1;
+        const conjPool = Math.max(1, (step.summon.conjuringPool ?? 8) - penalty);
+        const resPool = Math.max(1, (currentWIL + currentTDA) - penalty);
 
         do {
           attempts++;
-          const invocationRolls = rollDice(currentConjuringPool);
+
+          const invocationRolls = rollDice(conjPool);
           const spiritRolls = rollDice(step.summon.force * 2);
-          const drainRolls = rollDice(currentDrainResistancePool);
+          const drainRolls = rollDice(resPool);
 
           const invocationHits = countHits(invocationRolls);
           const spiritHits = countHits(spiritRolls);
           const drainHits = countHits(drainRolls);
 
           services = Math.max(0, invocationHits - spiritHits);
-          stepDrain = Math.max(0, spiritHits - drainHits);
+          const stepDrain = Math.max(0, spiritHits - drainHits);
 
-          allAttempts.push({ invocationRolls, spiritRolls, drainRolls });
+          totalDrainThisStep += stepDrain;
 
-          if (services >= minServices || !autoRetry || drain + stepDrain >= maxDrainThreshold) break;
+          allAttempts.push({ 
+            invocationRolls, 
+            spiritRolls, 
+            drainRolls 
+          });
+
+          if (services >= minServices || !autoRetry || drain + totalDrainThisStep >= maxDrainThreshold) {
+            break;
+          }
         } while (true);
 
-        drain += stepDrain;
+        drain += totalDrainThisStep;
 
         results.push({ 
           stepNumber: i + 1, 
           type: "summon", 
           services, 
-          drain: stepDrain, 
+          drain: totalDrainThisStep, 
           attempts, 
           penalty,
           allAttempts 
@@ -361,7 +415,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           });
         }
       } 
-           // ==================== CAST ====================
+                 // ==================== CAST ====================
       else if (step.type === "cast" && step.cast && step.cast.spellId) {
         const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
         if (!spell) continue;
@@ -378,7 +432,6 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
         let currentCastingPool = Math.max(1, (step.cast.castingPool || 10) - penalty);
         let currentDrainResistancePool = Math.max(1, baseDrainResistancePool - penalty);
 
-        // Gestion caster = esprit
         if (step.cast.caster === "spirit" && generated.length > 0) {
           const lastSpirit = generated[generated.length - 1];
           if (lastSpirit.force) currentDrainResistancePool = lastSpirit.force * 2;
@@ -402,7 +455,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             effectiveHits = Math.min(spellHits, maxHits);
             const extraHits = Math.max(0, effectiveHits - threshold);
             const increasedDrain = (parseInt(spell.drain) || 3) + extraHits;
-            stepDrain = Math.max(0, increasedDrain - drainHits);   // ← FIX ICI
+            stepDrain = Math.max(0, increasedDrain - drainHits);
           } else {
             effectiveHits = spellHits;
             stepDrain = Math.max(0, (parseInt(spell.drain) || 3) - drainHits);
@@ -413,7 +466,6 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           if (spellHits >= minHits || !autoRetry || drain >= maxDrainThreshold) break;
         } while (true);
 
-        // Bonus persistants WIL / TDA
         let bonusHits = step.cast.hitsIncreaseDrain ? effectiveHits : spellHits;
 
         if (step.cast.increaseWIL) {
@@ -427,6 +479,11 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             : (char.attributes?.LOG ?? 3);
           currentTDA = Math.max(currentTDA, baseTDA + bonusHits);
           setRoutineTDA(currentTDA);
+        }
+        if (step.cast.increaseBOD) {
+          const baseBOD = char.attributes?.BOD ?? 3;
+          currentBOD = Math.max(currentBOD, baseBOD + bonusHits);
+          setRoutineBOD(currentBOD);
         }
 
         const isSpiritCasting = step.cast.caster === "spirit" && generated.length > 0;
@@ -457,8 +514,29 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
           allAttempts,
           caster: step.cast.caster 
         });
+      } 
+            // ==================== SHORT REST (1 heure) ====================
+      else if (step.type === "rest") {
+        const bod = char.attributes?.BOD ?? 3;
+        const wil = char.attributes?.WIL ?? 3;
+        const pool = bod + wil;
+
+        const rolls = rollDice(pool);
+        const hits = countHits(rolls);
+
+        const drainHealed = Math.min(drain, hits);
+        drain -= drainHealed;
+
+        results.push({ 
+          stepNumber: i + 1, 
+          type: "rest", 
+          pool, 
+          hits,
+          drainHealed,
+          allAttempts: [{ rolls }]   // pour afficher les dés
+        });
       }
-    }
+    } // ← FIN DE LA BOUCLE FOR
 
     setTempSpirits(generated);
     setTotalDrain(drain);
@@ -467,11 +545,11 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
   };
 
   const confirmRoutine = () => {
-    tempSpirits.forEach(spirit => addSpirit(spirit));
-    resetProgress();
-    alert(`Routine confirmed! ${tempSpirits.length} spirits added.`);
-    onClose();
-  };
+  tempSpirits.forEach(spirit => addSpirit(spirit));
+  resetProgress();
+  alert(`Routine confirmed! ${tempSpirits.length} spirits added.`);
+  onClose();
+};
 
   if (!isOpen) return null;
 
@@ -481,37 +559,43 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
         <div style={{ padding: "16px 24px", background: "#1e2937", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ color: "#c084fc", margin: 0 }}>🔄 Magic Daily Routine</h2>
           
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <span style={{ color: "#94a3b8", fontWeight: "500" }}>Tradition :</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <span style={{ color: "#94a3b8", fontWeight: "500" }}>Tradition :</span>
             
-            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#e0f2fe" }}>
-              <input 
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#e0f2fe" }}>
+                <input 
                 type="radio" 
                 name="tradition" 
                 checked={routineTradition === "hermetic"} 
                 onChange={() => setRoutineTradition("hermetic")} 
-              />
+                />
               Hermetic
-            </label>
+                </label>
 
-            <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#e0f2fe" }}>
-              <input 
+                <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#e0f2fe" }}>
+                <input 
                 type="radio" 
                 name="tradition" 
                 checked={routineTradition === "shamanic"} 
                 onChange={() => setRoutineTradition("shamanic")} 
-              />
-              Shamanic
-            </label>
-          </div>
+                />
+                Shamanic
+                    </label>
+            </div>
 
-          <button onClick={onClose} style={{ color: "#f87171", fontSize: "1.8rem", background: "none", border: "none", cursor: "pointer" }}>✕</button>
-        </div>
-
+                <button onClick={onClose} style={{ color: "#f87171", fontSize: "1.8rem", background: "none", border: "none", cursor: "pointer" }}>✕</button>
+            </div>
+                {/* TOOLBAR */}
         <div style={{ padding: "14px 24px", background: "#1e2937", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          
+          {/* Partie gauche */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <span>Accumulated Drain : <strong style={{ color: "#f87171" }}>{totalDrain}</strong></span>
-            <button onClick={runRoutine} disabled={isRunning || steps.length === 0} style={{ padding: "8px 20px", background: "#22d3ee", color: "#000", fontWeight: "bold", borderRadius: "8px" }}>
+            <button 
+              onClick={runRoutine} 
+              disabled={isRunning || steps.length === 0} 
+              style={{ padding: "8px 20px", background: "#22d3ee", color: "#000", fontWeight: "bold", borderRadius: "8px" }}
+            >
               {isRunning ? "Running..." : "▶ Run Routine"}
             </button>
 
@@ -527,66 +611,47 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
             )}
           </div>
 
-          {/* Attributs */}
-          <div style={{ display: "flex", gap: "16px" }}>
-            <div onClick={() => setEditingAttr(editingAttr === "WIL" ? null : "WIL")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "WIL" ? "2px solid #67e8f9" : "1px solid #334155", minWidth: "90px", textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: "0.9rem", color: "#94a3b8" }}>WIL</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: "bold", color: "#67e8f9" }}>{routineWIL}</div>
-              {editingAttr === "WIL" && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "6px" }}>
-                  <button onClick={(e) => { e.stopPropagation(); setRoutineWIL(prev => Math.max(1, prev - 1)); }} style={{ background: "#ef4444", width: "28px", height: "28px", borderRadius: "50%" }}>-</button>
-                  <button onClick={(e) => { e.stopPropagation(); setRoutineWIL(prev => prev + 1); }} style={{ background: "#22c55e", width: "28px", height: "28px", borderRadius: "50%" }}>+</button>
-                </div>
-              )}
+          {/* Partie droite : Attributs */}
+          <div style={{ display: "flex", gap: "12px" }}>
+            <div onClick={() => setEditingAttr(editingAttr === "WIL" ? null : "WIL")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "WIL" ? "2px solid #67e8f9" : "1px solid #334155", minWidth: "85px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>WIL</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#67e8f9" }}>{routineWIL}</div>
             </div>
 
-            <div onClick={() => setEditingAttr(editingAttr === "TDA" ? null : "TDA")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "TDA" ? "2px solid #67e8f9" : "1px solid #334155", minWidth: "90px", textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: "0.9rem", color: "#94a3b8" }}>TDA</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: "bold", color: "#67e8f9" }}>{routineTDA}</div>
-              {editingAttr === "TDA" && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "6px" }}>
-                  <button onClick={(e) => { e.stopPropagation(); setRoutineTDA(prev => Math.max(1, prev - 1)); }} style={{ background: "#ef4444", width: "28px", height: "28px", borderRadius: "50%" }}>-</button>
-                  <button onClick={(e) => { e.stopPropagation(); setRoutineTDA(prev => prev + 1); }} style={{ background: "#22c55e", width: "28px", height: "28px", borderRadius: "50%" }}>+</button>
-                </div>
-              )}
+            <div onClick={() => setEditingAttr(editingAttr === "TDA" ? null : "TDA")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "TDA" ? "2px solid #67e8f9" : "1px solid #334155", minWidth: "85px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>TDA</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#67e8f9" }}>{routineTDA}</div>
             </div>
 
-            <div onClick={() => setEditingAttr(editingAttr === "MAXDRAIN" ? null : "MAXDRAIN")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "MAXDRAIN" ? "2px solid #f87171" : "1px solid #334155", minWidth: "110px", textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: "0.9rem", color: "#94a3b8" }}>Max Drain</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: "bold", color: "#f87171" }}>{maxDrainThreshold}</div>
-              {editingAttr === "MAXDRAIN" && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "6px" }}>
-                  <button onClick={(e) => { e.stopPropagation(); setMaxDrainThreshold(prev => Math.max(1, prev - 1)); }} style={{ background: "#ef4444", width: "28px", height: "28px", borderRadius: "50%" }}>-</button>
-                  <button onClick={(e) => { e.stopPropagation(); setMaxDrainThreshold(prev => prev + 1); }} style={{ background: "#22c55e", width: "28px", height: "28px", borderRadius: "50%" }}>+</button>
-                </div>
-              )}
+            <div onClick={() => setEditingAttr(editingAttr === "BOD" ? null : "BOD")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "BOD" ? "2px solid #67e8f9" : "1px solid #334155", minWidth: "85px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>BOD</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#67e8f9" }}>{routineBOD}</div>
             </div>
-            <div onClick={() => setEditingAttr(editingAttr === "MAXSPIRITDRAIN" ? null : "MAXSPIRITDRAIN")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "MAXSPIRITDRAIN" ? "2px solid #f87171" : "1px solid #334155", minWidth: "130px", textAlign: "center", cursor: "pointer" }}>
-              <div style={{ fontSize: "0.9rem", color: "#94a3b8" }}>Max Drain Esprit</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: "bold", color: "#f87171" }}>{maxSpiritDrain}</div>
-              {editingAttr === "MAXSPIRITDRAIN" && (
-                <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "6px" }}>
-                  <button onClick={(e) => { e.stopPropagation(); setMaxSpiritDrain(prev => Math.max(1, prev - 1)); }} style={{ background: "#ef4444", width: "28px", height: "28px", borderRadius: "50%" }}>-</button>
-                  <button onClick={(e) => { e.stopPropagation(); setMaxSpiritDrain(prev => prev + 1); }} style={{ background: "#22c55e", width: "28px", height: "28px", borderRadius: "50%" }}>+</button>
-                </div>
-              )}
+
+            <div onClick={() => setEditingAttr(editingAttr === "MAXDRAIN" ? null : "MAXDRAIN")} style={{ background: "#0f172a", padding: "8px 14px", borderRadius: "8px", border: editingAttr === "MAXDRAIN" ? "2px solid #f87171" : "1px solid #334155", minWidth: "100px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Max Drain</div>
+              <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#f87171" }}>{maxDrainThreshold}</div>
             </div>
           </div>
         </div>
 
+        {/* CONTENU PRINCIPAL */}
         <div style={{ padding: "20px", flex: 1, overflowY: "auto" }}>
           <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-            <button onClick={addSummonStep} style={{ flex: 1, padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px" }}>
-              ➕ Add Summoning
-            </button>
-            <button onClick={addCastStep} style={{ flex: 1, padding: "16px", background: "#c084fc", color: "#000", fontWeight: "bold", borderRadius: "10px" }}>
-              ⚡ Add Spellcasting
-            </button>
-          </div>
+  <button onClick={addSummonStep} style={{ flex: 1, padding: "16px", background: "#22c55e", color: "#000", fontWeight: "bold", borderRadius: "10px" }}>
+    ➕ Add Summoning
+  </button>
+  <button onClick={addCastStep} style={{ flex: 1, padding: "16px", background: "#c084fc", color: "#000", fontWeight: "bold", borderRadius: "10px" }}>
+    ⚡ Add Spellcasting
+  </button>
+  <button onClick={addRestStep} style={{ flex: 1, padding: "16px", background: "#eab308", color: "#000", fontWeight: "bold", borderRadius: "10px" }}>
+    ⏳ Add Short Rest (1h)
+  </button>
+</div>
 
           {steps.length === 0 && <p style={{ color: "#64748b", textAlign: "center", marginTop: "80px" }}>Add steps using the buttons above...</p>}
 
-                      {steps.map((step, i) => {
+          {steps.map((step, i) => {
             const result = stepResults.find(r => r.stepNumber === i + 1);
             return (
               <div key={i} style={{ 
@@ -599,8 +664,6 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
                 alignItems: "flex-start",
                 gap: "16px"
               }}>
-                
-                {/* Titre + Flèche */}
                 <div style={{ minWidth: "180px", cursor: "pointer" }} onClick={() => openStepConfig(i)}>
                   <strong>Step {i+1} — {step.type.toUpperCase()}</strong>
                   <div style={{ color: "#a5b4fc", fontWeight: "500", marginTop: "2px" }}>
@@ -613,19 +676,21 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
                   </div>
                 </div>
 
-                {/* Résultats avec bordure bleue */}
-                {result && (
-                  <div style={{ 
-                    flex: 1,
-                    borderLeft: "3px solid #67e8f9",
-                    paddingLeft: "12px"
-                  }}>
+                                                                                {result && (
+                  <div style={{ flex: 1, borderLeft: "3px solid #67e8f9", paddingLeft: "12px" }}>
                     <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
                       {result.type === "summon" ? (
                         <>
                           <div>Services: <strong style={{ color: "#22c55e" }}>{result.services}</strong></div>
                           <div>Drain: <strong style={{ color: "#f87171" }}>{result.drain}</strong></div>
                           <div>Essais: <strong>{result.attempts}</strong></div>
+                        </>
+                      ) : result.type === "rest" ? (
+                        <>
+                          <div>⏳ Short Rest (1h)</div>
+                          <div>Pool: <strong>{result.pool}</strong></div>
+                          <div>Hits: <strong style={{ color: "#22c55e" }}>{result.hits}</strong></div>
+                          <div>Drain récupéré: <strong style={{ color: "#22c55e" }}>-{result.drainHealed}</strong></div>
                         </>
                       ) : (
                         <>
@@ -636,21 +701,20 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
                       )}
                     </div>
 
-                    {/* Jets sans titre "Jets détaillés" */}
+                    {/* Jets détaillés pour TOUS les types */}
                     {result.allAttempts && result.allAttempts.length > 0 && (
-                      <div style={{ marginTop: "8px", fontSize: "0.78rem" }}>
+                      <div style={{ marginTop: "10px", fontSize: "0.78rem", lineHeight: "1.45" }}>
                         {result.allAttempts.map((a: any, idx: number) => (
-                          <div key={idx} style={{ marginTop: "3px", lineHeight: "1.35" }}>
-                            Essai {idx+1}: 
+                          <div key={idx} style={{ marginTop: "4px", color: "#cbd5e1" }}>
                             {result.type === "summon" ? (
-                              <> Inv: <span style={{ color: "#67e8f9" }}>{a.invocationRolls?.join(",")}</span> | 
-                              Esp: <span style={{ color: "#a5b4fc" }}>{a.spiritRolls?.join(",")}</span> | 
-                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(",")}</span>
-                              </>
+                              <>Inv: <span style={{ color: "#67e8f9" }}>{a.invocationRolls?.join(", ")}</span> | 
+                              Esp: <span style={{ color: "#a5b4fc" }}>{a.spiritRolls?.join(", ")}</span> | 
+                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(", ")}</span></>
+                            ) : result.type === "rest" ? (
+                              <>Rest: <span style={{ color: "#67e8f9" }}>{a.rolls?.join(", ")}</span></>
                             ) : (
-                              <> Sort: <span style={{ color: "#67e8f9" }}>{a.spellRolls?.join(",")}</span> | 
-                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(",")}</span>
-                              </>
+                              <>Sort: <span style={{ color: "#67e8f9" }}>{a.spellRolls?.join(", ")}</span> | 
+                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(", ")}</span></>
                             )}
                           </div>
                         ))}
@@ -659,12 +723,7 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
                   </div>
                 )}
 
-                <button 
-                  onClick={() => removeStep(i)} 
-                  style={{ color: "#f87171", marginLeft: "auto", padding: "4px 8px" }}
-                >
-                  ✕
-                </button>
+                <button onClick={() => removeStep(i)} style={{ color: "#f87171", marginLeft: "auto" }}>✕</button>
               </div>
             );
           })}
