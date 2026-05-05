@@ -586,72 +586,85 @@ export default function MagicRoutineModal({ isOpen, onClose, char, update, addSp
 
           {steps.length === 0 && <p style={{ color: "#64748b", textAlign: "center", marginTop: "80px" }}>Add steps using the buttons above...</p>}
 
-          {steps.map((step, i) => {
+                      {steps.map((step, i) => {
             const result = stepResults.find(r => r.stepNumber === i + 1);
             return (
-              <div key={i} style={{ background: "#1e2937", padding: "16px", marginBottom: "12px", borderRadius: "12px", border: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <div onClick={() => openStepConfig(i)} style={{ cursor: "pointer", flex: 1 }}>
+              <div key={i} style={{ 
+                background: "#1e2937", 
+                padding: "14px 16px", 
+                marginBottom: "12px", 
+                borderRadius: "12px", 
+                border: "1px solid #334155",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "16px"
+              }}>
+                
+                {/* Titre + Flèche */}
+                <div style={{ minWidth: "180px", cursor: "pointer" }} onClick={() => openStepConfig(i)}>
                   <strong>Step {i+1} — {step.type.toUpperCase()}</strong>
-                  
-                  {/* Nom du sort pour CAST */}
-                  {step.type === "cast" && step.cast?.spellId && (
-                    <span> → {ALL_SPELLS.find(s => s.id === step.cast.spellId)?.name}</span>
-                  )}
-                  
-                  {/* Type d'esprit pour SUMMON */}
-                  {step.type === "summon" && step.summon?.spiritType && (
-                    <span> → {step.summon.spiritType.toUpperCase()}</span>
-                  )}
+                  <div style={{ color: "#a5b4fc", fontWeight: "500", marginTop: "2px" }}>
+                    {step.type === "cast" && step.cast?.spellId && (
+                      `→ ${ALL_SPELLS.find(s => s.id === step.cast.spellId)?.name}`
+                    )}
+                    {step.type === "summon" && step.summon?.spiritType && (
+                      `→ ${step.summon.spiritType.toUpperCase()}`
+                    )}
+                  </div>
                 </div>
 
+                {/* Résultats avec bordure bleue */}
                 {result && (
-                  <div style={{ fontSize: "0.82rem", flex: 1, paddingLeft: "20px", borderLeft: "2px solid #334155" }}>
-                    {result.type === "summon" ? (
-                      <>
-                        <div style={{ display: "flex", gap: "12px" }}>
+                  <div style={{ 
+                    flex: 1,
+                    borderLeft: "3px solid #67e8f9",
+                    paddingLeft: "12px"
+                  }}>
+                    <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "center" }}>
+                      {result.type === "summon" ? (
+                        <>
                           <div>Services: <strong style={{ color: "#22c55e" }}>{result.services}</strong></div>
-                          <div>Drain : <strong style={{ color: "#f87171" }}>{result.drain}</strong></div>
-                          <div>Essais : <strong>{result.attempts}</strong></div>
-                        </div>
+                          <div>Drain: <strong style={{ color: "#f87171" }}>{result.drain}</strong></div>
+                          <div>Essais: <strong>{result.attempts}</strong></div>
+                        </>
+                      ) : (
+                        <>
+                          <div>Hits: <strong style={{ color: "#22c55e" }}>{result.spellHits}</strong></div>
+                          <div>Drain: <strong style={{ color: "#f87171" }}>{result.drain}</strong></div>
+                          <div>Essais: <strong>{result.attempts}</strong></div>
+                        </>
+                      )}
+                    </div>
 
-                        {result.allAttempts && result.allAttempts.length > 0 && (
-                          <div style={{ marginTop: "8px" }}>
-                            <small style={{ color: "#94a3b8" }}>Jets détaillés :</small>
-                            {result.allAttempts.map((a: any, idx: number) => (
-                              <div key={idx} style={{ marginTop: "4px", fontSize: "0.78rem", lineHeight: "1.4" }}>
-                                Essai {idx+1}: 
-                                Inv: <span style={{ color: "#67e8f9" }}>{a.invocationRolls.join(",")}</span> | 
-                                Esp: <span style={{ color: "#a5b4fc" }}>{a.spiritRolls.join(",")}</span> | 
-                                Dr: <span style={{ color: "#f87171" }}>{a.drainRolls.join(",")}</span>
-                              </div>
-                            ))}
+                    {/* Jets sans titre "Jets détaillés" */}
+                    {result.allAttempts && result.allAttempts.length > 0 && (
+                      <div style={{ marginTop: "8px", fontSize: "0.78rem" }}>
+                        {result.allAttempts.map((a: any, idx: number) => (
+                          <div key={idx} style={{ marginTop: "3px", lineHeight: "1.35" }}>
+                            Essai {idx+1}: 
+                            {result.type === "summon" ? (
+                              <> Inv: <span style={{ color: "#67e8f9" }}>{a.invocationRolls?.join(",")}</span> | 
+                              Esp: <span style={{ color: "#a5b4fc" }}>{a.spiritRolls?.join(",")}</span> | 
+                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(",")}</span>
+                              </>
+                            ) : (
+                              <> Sort: <span style={{ color: "#67e8f9" }}>{a.spellRolls?.join(",")}</span> | 
+                              Dr: <span style={{ color: "#f87171" }}>{a.drainRolls?.join(",")}</span>
+                              </>
+                            )}
                           </div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div>Hits : <strong style={{ color: "#22c55e" }}>{result.spellHits}</strong></div>
-                        <div>Drain étape : <strong style={{ color: "#f87171" }}>{result.drain}</strong></div>
-                        <div>Essais : <strong>{result.attempts}</strong></div>
-
-                        {result.allAttempts && result.allAttempts.length > 0 && (
-                          <div style={{ marginTop: "8px" }}>
-                            <small style={{ color: "#94a3b8" }}>Jets détaillés :</small>
-                            {result.allAttempts.map((a: any, idx: number) => (
-                              <div key={idx} style={{ marginTop: "4px", fontSize: "0.78rem", lineHeight: "1.4" }}>
-                                Essai {idx+1}: 
-                                Sort: <span style={{ color: "#67e8f9" }}>{a.spellRolls.join(",")}</span> | 
-                                Dr: <span style={{ color: "#f87171" }}>{a.drainRolls.join(",")}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </>
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}
 
-                <button onClick={() => removeStep(i)} style={{ color: "#f87171", marginLeft: "12px" }}>✕</button>
+                <button 
+                  onClick={() => removeStep(i)} 
+                  style={{ color: "#f87171", marginLeft: "auto", padding: "4px 8px" }}
+                >
+                  ✕
+                </button>
               </div>
             );
           })}
