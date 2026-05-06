@@ -103,7 +103,7 @@ export default function RoutineResults({
               </div>
             )}
 
-            {/* AUTO RESTS */}
+                                    {/* AUTO RESTS */}
             {rests.length > 0 && (
               <div style={{ 
                 padding: "12px", 
@@ -122,56 +122,56 @@ export default function RoutineResults({
                 ))}
               </div>
             )}
-
-            {/* === ESPRITS TEMPORAIRES === */}
-            {tempSpirits && tempSpirits.length > 0 && (
-              <div style={{ 
-                marginTop: "20px", 
-                padding: "14px", 
-                background: "#1a252f", 
-                border: "2px solid #eab308", 
-                borderRadius: "10px" 
-              }}>
-                <div style={{ color: "#eab308", fontWeight: "bold", marginBottom: "12px" }}>
-                  ⚔️ Esprits Temporaires Invoqués ({tempSpirits.length})
-                </div>
-                
-                {tempSpirits.map((spirit: any, idx: number) => (
-                  <div key={spirit.id || idx} style={{
-                    background: "#111827",
-                    padding: "12px",
-                    marginBottom: "10px",
-                    borderRadius: "8px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                  }}>
-                    <div>
-                      <strong>{spirit.name}</strong><br />
-                      Force : <strong>{spirit.force}</strong> | 
-                      Services : <strong style={{color: "#22c55e"}}>{spirit.services}</strong>
-                    </div>
-                    <button 
-                      onClick={() => setTempSpirits((prev: any[]) => prev.filter((_, i) => i !== idx))}
-                      style={{ 
-                        background: "#f87171", 
-                        color: "white", 
-                        border: "none", 
-                        padding: "4px 10px", 
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        fontSize: "0.9rem"
-                      }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         );
       })}
+
+      {/* === ESPRITS TEMPORAIRES - AFFICHAGE UNIQUE À LA FIN === */}
+      {tempSpirits && tempSpirits.length > 0 && (
+        <div style={{ 
+          marginTop: "30px", 
+          padding: "16px", 
+          background: "#1a252f", 
+          border: "2px solid #eab308", 
+          borderRadius: "12px" 
+        }}>
+          <div style={{ color: "#eab308", fontWeight: "bold", marginBottom: "14px", fontSize: "1.15rem" }}>
+            ⚔️ Esprits Temporaires Invoqués ({tempSpirits.length})
+          </div>
+          
+          {tempSpirits.map((spirit: any, idx: number) => (
+            <div key={spirit.id || idx} style={{
+              background: "#111827",
+              padding: "14px",
+              marginBottom: "10px",
+              borderRadius: "8px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <div>
+                <strong>{spirit.name}</strong><br />
+                Force : <strong>{spirit.force}</strong> | 
+                Services : <strong style={{color: "#22c55e"}}>{spirit.services}</strong>
+              </div>
+              <button 
+                onClick={() => setTempSpirits((prev: any[]) => prev.filter((_, i) => i !== idx))}
+                style={{ 
+                  background: "#f87171", 
+                  color: "white", 
+                  border: "none", 
+                  padding: "6px 12px", 
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "0.9rem"
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

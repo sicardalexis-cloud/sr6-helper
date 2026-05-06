@@ -1,6 +1,7 @@
 // src/components/MagicRoutineModal/useMagicRoutine.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ALL_SPELLS } from "../../data/spells";
+
 
 const ROUTINE_KEY = 'magic-routine-state';
 
@@ -21,7 +22,10 @@ const [tempBoosts, setTempBoosts] = useState<{
     BOD: 0
   });
   const [tempSpirits, setTempSpirits] = useState<any[]>([]);   // ← Liste temporaire
-
+    const tempSpiritsRef = useRef(tempSpirits);
+  useEffect(() => {
+    tempSpiritsRef.current = tempSpirits;
+  }, [tempSpirits]);
   const [routineTradition, setRoutineTradition] = useState<"hermetic" | "shamanic">("hermetic");
   const [routineWIL, setRoutineWIL] = useState<number>(5);
   const [routineTDA, setRoutineTDA] = useState<number>(6);
@@ -104,10 +108,17 @@ const [tempBoosts, setTempBoosts] = useState<{
     }]);
   };
 
-  const addCastStep = () => {
+    const addCastStep = () => {
     setSteps(prev => [...prev, { 
       type: "cast", 
-      cast: { spellId: "", castingPool: 10, minHits: 2, autoRetry: true } 
+      cast: { 
+        spellId: "", 
+        castingPool: 10, 
+        minHits: 2, 
+        autoRetry: true,
+        caster: "mage",           // ← AJOUTE ÇA
+        increaseAttribute: false
+      } 
     }]);
   };
 
@@ -244,7 +255,8 @@ const [tempBoosts, setTempBoosts] = useState<{
         } 
 
 
-        else if (step.type === "cast" && step.cast) {
+                         else if (step.type === "cast" && step.cast) {
+          const castConfig = step.cast || {};
           const { 
             castingPool = 10, 
             minHits = 2, 
@@ -252,10 +264,10 @@ const [tempBoosts, setTempBoosts] = useState<{
             spellId, 
             increaseAttribute = false, 
             essenceThreshold = 6,
-            boostAttribute = "WIL"
-          } = step.cast;
+            boostAttribute = "WIL",
+            caster = "mage"
+          } = castConfig;
 
-          // Recherche du sort pour récupérer son Drain de base
           const spell = ALL_SPELLS.find(s => s.id === spellId);
           const baseDrain = Number(spell?.drain) || 3;
 
@@ -263,7 +275,20 @@ const [tempBoosts, setTempBoosts] = useState<{
           let attempts = 0;
           const allAttempts: any[] = [];
 
-          console.log(`  Cast ${spell?.name || spellId} | Drain de base = ${baseDrain}`);
+          // === CAPTURE FRAÎCHE VIA REF ===
+          const currentSpirits = [...tempSpiritsRef.current];
+          let resistancePool = routineWIL + routineTDA;
+          let isSpiritCasting = false;
+          let castingSpirit = null;
+
+          if (caster === "spirit" && currentSpirits.length > 0) {
+            castingSpirit = currentSpirits[currentSpirits.length - 1];
+            resistancePool = castingSpirit.force * 2;
+            isSpiritCasting = true;
+            console.log(`🌟 [CAST] Esprit détecté : ${castingSpirit.name} (Force ${castingSpirit.force})`);
+          } else {
+            console.log(`🧙 [CAST] Mage casting (caster="${caster}" | tempSpirits=${currentSpirits.length})`);
+          }
 
           while (hits < minHits && (autoRetry || attempts === 0) && attempts < 20) {
             attempts++;
@@ -271,55 +296,53 @@ const [tempBoosts, setTempBoosts] = useState<{
             const spellRolls = rollDice(castingPool);
             const spellHits = countHits(spellRolls);
 
-            const drainRolls = rollDice(routineWIL + routineTDA);
+            const drainRolls = rollDice(resistancePool);
             const drainHits = countHits(drainRolls);
 
             let drainThis = Math.max(0, baseDrain - drainHits);
 
-            // === LOGIQUE INCREASE ATTRIBUTE ===
-                       if (increaseAttribute) {
+            if (increaseAttribute) {
               const essenceCible = essenceThreshold || 6;
               let netHits = essenceCible - 5 + spellHits;
-              netHits = Math.max(0, Math.min(4, netHits));   // limite 0-4
+              netHits = Math.max(0, Math.min(4, netHits));
 
-              const attr = (step.cast.boostAttribute || "WIL") as "WIL" | "TDA" | "BOD";
-
+              const attr = (boostAttribute) as "WIL" | "TDA" | "BOD";
               const currentBest = tempBoosts[attr];
 
               if (netHits > currentBest) {
                 const improvement = netHits - currentBest;
-
-                // Mise à jour du meilleur bonus
                 setTempBoosts(prev => ({ ...prev, [attr]: netHits }));
 
-                // Application immédiate sur l'attribut temporaire
-                if (attr === "WIL") setRoutineWIL(prev => prev + improvement);
-                else if (attr === "TDA") setRoutineTDA(prev => prev + improvement);
-                else if (attr === "BOD") setRoutineBOD(prev => prev + improvement);
+                if (attr === "WIL") setRoutineWIL(p => p + improvement);
+                else if (attr === "TDA") setRoutineTDA(p => p + improvement);
+                else if (attr === "BOD") setRoutineBOD(p => p + improvement);
 
-                // Extra drain uniquement si le bonus est accepté
                 const extraDrain = Math.max(0, netHits - 1);
                 drainThis += extraDrain;
-
-                console.log(`      → ${attr} boosté : +${netHits} (amélioration +${improvement}) | +${extraDrain} drain`);
-              } else {
-                console.log(`      → Boost ${attr} ignoré (${netHits} ≤ meilleur actuel ${currentBest}) → pas d'extra drain`);
               }
             }
 
             hits = Math.max(hits, spellHits);
-            drain += drainThis;
+
+            if (isSpiritCasting && castingSpirit) {
+              let remaining = castingSpirit.remainingServices ?? castingSpirit.services ?? 0;
+              remaining = Math.max(0, remaining - drainThis);
+              remaining = Math.max(0, remaining - 1);
+
+              castingSpirit.remainingServices = remaining;
+
+              console.log(`      → Esprit lance : Drain ${drainThis} +1 service | Restant: ${remaining}`);
+            } else {
+              drain += drainThis;
+              console.log(`      → Mage encaisse ${drainThis} drain`);
+            }
 
             allAttempts.push({
               spellRolls,
               drainRolls,
               drainThisAttempt: drainThis,
-              baseDrain,
-              drainHits,
-              netHits: increaseAttribute ? Math.max(0, Math.min(4, (essenceThreshold) - 5 + spellHits)) : undefined
+              caster: isSpiritCasting ? "spirit" : "mage"
             });
-
-            console.log(`    Tentative ${attempts} → Hits: ${spellHits} | Drain causé: ${drainThis}`);
 
             await new Promise(r => setTimeout(r, 400));
           }
@@ -331,8 +354,9 @@ const [tempBoosts, setTempBoosts] = useState<{
             drain: Math.floor(drain),
             attempts,
             allAttempts,
-            spellId: spellId,
-            interruptedByDrain: drain >= maxDrainThreshold
+            spellId,
+            isSpiritCasting,
+            interruptedByDrain: !isSpiritCasting && drain >= maxDrainThreshold
           });
         }
 
