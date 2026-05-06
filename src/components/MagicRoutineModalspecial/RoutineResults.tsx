@@ -7,8 +7,8 @@ export default function RoutineResults({
   onEditStep, 
   onRemoveStep,
   totalDrain,
-  tempSpirits = [],           // Valeur par défaut
-  setTempSpirits              // Pour supprimer
+  tempSpirits = [],           
+  setTempSpirits              
 }: any) {
 
   return (
@@ -103,7 +103,7 @@ export default function RoutineResults({
               </div>
             )}
 
-                                    {/* AUTO RESTS */}
+            {/* AUTO RESTS */}
             {rests.length > 0 && (
               <div style={{ 
                 padding: "12px", 
@@ -150,9 +150,10 @@ export default function RoutineResults({
               alignItems: "center"
             }}>
               <div>
-                <strong>{spirit.name}</strong><br />
+                <strong style={{ color: "#c084fc" }}>{spirit.element?.toUpperCase() || "UNKNOWN"}</strong> Spirit<br />
                 Force : <strong>{spirit.force}</strong> | 
-                Services : <strong style={{color: "#22c55e"}}>{spirit.services}</strong>
+                Services restants : <strong style={{color: "#22c55e"}}>{spirit.servicesRemaining}</strong><br />
+                <span style={{color: "#f87171"}}>Condition Damage : {spirit.conditionDamage || 0}</span>
               </div>
               <button 
                 onClick={() => setTempSpirits((prev: any[]) => prev.filter((_, i) => i !== idx))}

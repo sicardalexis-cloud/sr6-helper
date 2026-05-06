@@ -21,15 +21,28 @@ const [tempBoosts, setTempBoosts] = useState<{
     TDA: 0,
     BOD: 0
   });
-  const [tempSpirits, setTempSpirits] = useState<any[]>([]);   // ← Liste temporaire
-    const tempSpiritsRef = useRef(tempSpirits);
+    const [tempSpirits, setTempSpirits] = useState<any[]>([]);   
+  const tempSpiritsRef = useRef<any[]>([]);
+
   useEffect(() => {
     tempSpiritsRef.current = tempSpirits;
   }, [tempSpirits]);
-  const [routineTradition, setRoutineTradition] = useState<"hermetic" | "shamanic">("hermetic");
+
+    const [routineTradition, setRoutineTradition] = useState<"hermetic" | "shamanic">("hermetic");
   const [routineWIL, setRoutineWIL] = useState<number>(5);
   const [routineTDA, setRoutineTDA] = useState<number>(6);
   const [routineBOD, setRoutineBOD] = useState<number>(3);
+    // === RÉFÉRENCE FRAÎCHE POUR TOUS LES ATTRIBUTS TEMPORAIRES ===
+  const routineAttributesRef = useRef({ BOD: 3, WIL: 5, TDA: 6 });
+
+  useEffect(() => {
+    routineAttributesRef.current = { 
+      BOD: routineBOD, 
+      WIL: routineWIL, 
+      TDA: routineTDA 
+    };
+  }, [routineBOD, routineWIL, routineTDA]);
+
   const [maxDrainThreshold, setMaxDrainThreshold] = useState<number>(12);
   const [maxAutoRests, setMaxAutoRests] = useState<number>(3);
 
@@ -155,7 +168,7 @@ const [tempBoosts, setTempBoosts] = useState<{
 
         console.log(`\n→ Début de l'étape ${stepNumber} : ${step.type.toUpperCase()}`);
 
-                if (step.type === "summon" && step.summon) {
+                               if (step.type === "summon" && step.summon) {
           const { conjuringPool = 10, force = 4, minServices = 1, autoRetry = false } = step.summon;
 
           let services = 0;
@@ -165,9 +178,11 @@ const [tempBoosts, setTempBoosts] = useState<{
           while (services < minServices && (autoRetry || attempts === 0) && attempts < 20 && !routineStopped) {
             attempts++;
 
+            const attrs = routineAttributesRef.current;   // ← VALEURS FRAÎCHES
+
             const inv = rollDice(conjuringPool);
             const spi = rollDice(force * 2);
-            const dr = rollDice(routineWIL + routineTDA);
+            const dr = rollDice(attrs.WIL + attrs.TDA);   // ← Correction ici
 
             const invH = countHits(inv);
             const spiH = countHits(spi);
@@ -186,11 +201,12 @@ const [tempBoosts, setTempBoosts] = useState<{
               drainThisAttempt: drainThis
             });
 
-            console.log(`    Tentative ${attempts} → Services: ${services}/${minServices} | Drain actuel: ${drain}`);
+            console.log(`    Tentative ${attempts} → Services: ${services}/${minServices} | Drain actuel: ${drain} | Resistance Pool utilisée = ${attrs.WIL + attrs.TDA}`);
 
             // === AUTO-RESTS ===
             while (drain >= maxDrainThreshold && autoRestsCount < maxAutoRests && !routineStopped) {
-              const restPool = routineBOD + routineWIL;
+              const restPool = attrs.BOD + attrs.WIL;   // déjà corrigé précédemment
+
               const rolls = rollDice(restPool);
               const hits = countHits(rolls);
               const healed = Math.min(drain, hits);
@@ -198,7 +214,7 @@ const [tempBoosts, setTempBoosts] = useState<{
               drain = Math.max(0, drain - healed);
               autoRestsCount++;
 
-              console.log(`      → Auto-rest #${autoRestsCount} | Drain récupéré: ${healed} | Drain restant: ${drain}`);
+              console.log(`      → Auto-rest #${autoRestsCount} | Pool = ${restPool} (${attrs.BOD} BOD + ${attrs.WIL} WIL) | Hits = ${hits} | Drain récupéré = ${healed}`);
 
               results.push({
                 stepNumber,
@@ -239,23 +255,23 @@ const [tempBoosts, setTempBoosts] = useState<{
           if (services >= minServices) {
             const newSpirit = {
               id: `temp-spirit-${Date.now()}`,
-              name: `${step.summon.spiritType.charAt(0).toUpperCase() + step.summon.spiritType.slice(1)} Spirit`,
-              type: step.summon.spiritType,
+              element: step.summon.spiritType,
               force: step.summon.force,
-              services: services,
-              remainingServices: services,
+              servicesRemaining: services,
+              conditionDamage: 0,
+              invocationDate: new Date().toLocaleDateString("fr-FR"),
+              solarPhase: "Day",
+              solarTokens: 2,
               temporary: true,
               summonedFromRoutine: true
             };
 
             setTempSpirits(prev => [...prev, newSpirit]);
-
-            console.log(`➕ Esprit temporaire ajouté : ${newSpirit.name} (${services} services)`);
+            console.log(`➕ Esprit temporaire ajouté → ${newSpirit.element} Force ${newSpirit.force}`);
           }
         } 
 
-
-                         else if (step.type === "cast" && step.cast) {
+                                            else if (step.type === "cast" && step.cast) {
           const castConfig = step.cast || {};
           const { 
             castingPool = 10, 
@@ -275,7 +291,6 @@ const [tempBoosts, setTempBoosts] = useState<{
           let attempts = 0;
           const allAttempts: any[] = [];
 
-          // === CAPTURE FRAÎCHE VIA REF ===
           const currentSpirits = [...tempSpiritsRef.current];
           let resistancePool = routineWIL + routineTDA;
           let isSpiritCasting = false;
@@ -285,9 +300,9 @@ const [tempBoosts, setTempBoosts] = useState<{
             castingSpirit = currentSpirits[currentSpirits.length - 1];
             resistancePool = castingSpirit.force * 2;
             isSpiritCasting = true;
-            console.log(`🌟 [CAST] Esprit détecté : ${castingSpirit.name} (Force ${castingSpirit.force})`);
+            console.log(`🌟 [CAST] Esprit détecté : ${castingSpirit.element?.toUpperCase() || "UNKNOWN"} (Force ${castingSpirit.force})`);
           } else {
-            console.log(`🧙 [CAST] Mage casting (caster="${caster}" | tempSpirits=${currentSpirits.length})`);
+            console.log(`🧙 [CAST] Mage casting (caster="${caster}" | Pool = ${resistancePool})`);
           }
 
           while (hits < minHits && (autoRetry || attempts === 0) && attempts < 20) {
@@ -325,13 +340,16 @@ const [tempBoosts, setTempBoosts] = useState<{
             hits = Math.max(hits, spellHits);
 
             if (isSpiritCasting && castingSpirit) {
-              let remaining = castingSpirit.remainingServices ?? castingSpirit.services ?? 0;
-              remaining = Math.max(0, remaining - drainThis);
+              let remaining = castingSpirit.servicesRemaining ?? castingSpirit.services ?? 0;
               remaining = Math.max(0, remaining - 1);
 
-              castingSpirit.remainingServices = remaining;
+              const spiritDrain = drainThis;
+              let newConditionDamage = (castingSpirit.conditionDamage || 0) + spiritDrain;
 
-              console.log(`      → Esprit lance : Drain ${drainThis} +1 service | Restant: ${remaining}`);
+              castingSpirit.servicesRemaining = remaining;
+              castingSpirit.conditionDamage = newConditionDamage;
+
+              console.log(`      → ${castingSpirit.element?.toUpperCase()} Spirit encaisse ${spiritDrain} drain | Condition Damage: ${newConditionDamage} | Services restants: ${remaining}`);
             } else {
               drain += drainThis;
               console.log(`      → Mage encaisse ${drainThis} drain`);
@@ -345,6 +363,39 @@ const [tempBoosts, setTempBoosts] = useState<{
             });
 
             await new Promise(r => setTimeout(r, 400));
+          }
+
+          // === VÉRIFICATION AUTO-REST APRÈS LA FIN DE L'ÉTAPE CAST ===
+          const attrs = routineAttributesRef.current;
+          while (drain >= maxDrainThreshold && autoRestsCount < maxAutoRests && !routineStopped) {
+            const restPool = attrs.BOD + attrs.WIL;
+            const rolls = rollDice(restPool);
+            const hits = countHits(rolls);
+            const healed = Math.min(drain, hits);
+
+            drain = Math.max(0, drain - healed);
+            autoRestsCount++;
+
+            console.log(`      → Auto-rest #${autoRestsCount} (après Cast) | Pool = ${restPool} | Hits = ${hits} | Drain récupéré = ${healed}`);
+
+            results.push({
+              stepNumber,
+              type: "rest",
+              isAutoRest: true,
+              pool: restPool,
+              hits,
+              drainHealed: healed,
+              rolls,
+              autoRestNumber: autoRestsCount,
+              triggeredByAttempt: attempts
+            });
+
+            setStepResults([...results]);
+            await new Promise(r => setTimeout(r, 700));
+
+            if (autoRestsCount >= maxAutoRests) {
+              routineStopped = true;
+            }
           }
 
           results.push({
