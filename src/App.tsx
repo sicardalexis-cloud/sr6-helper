@@ -15,8 +15,10 @@ import HealsAndRestModal from "./components/HealsAndRestModal";
 import SpellsModal from "./components/SpellsModal";
 import SpellcastingModal from "./components/SpellcastingModal";
 import CombatModal from "./components/CombatModal";
-import ExtendedTestModal from "./components/ExtendedTestModal";   // ← Nouveau
-import MagicRoutineModal from "./components/MagicRoutineModal";
+import ExtendedTestModal from "./components/ExtendedTestModal";
+
+// IMPORT CORRIGÉ :
+import MagicRoutineModal from "./components/MagicRoutineModalspecial/MagicRoutineModal";
 
 const STORAGE_KEY = 'kage-character';
 
