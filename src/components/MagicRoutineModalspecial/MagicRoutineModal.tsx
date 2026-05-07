@@ -1,5 +1,5 @@
 // src/components/MagicRoutineModal/MagicRoutineModal.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import StepConfigModal from "./StepConfigModal";
 import RoutineResults from "./RoutineResults";
 import { useMagicRoutine } from "./useMagicRoutine";
@@ -49,6 +49,11 @@ export default function MagicRoutineModal({
   const [editingMax, setEditingMax] = useState<"drain" | "autorests" | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
   const [isRoutineConfirmed, setIsRoutineConfirmed] = useState(false);
+  useEffect(() => {
+    if (stepResults.length > 0) {
+      setIsRoutineConfirmed(false);   // ← Repasse en vert quand il y a de nouveaux résultats
+    }
+  }, [stepResults.length]);
 
   if (!isOpen) return null;
 
@@ -135,22 +140,21 @@ export default function MagicRoutineModal({
             }
           </button>
 
-             {/* Bouton CONFIRMER - Petit bouton */}
+                      {/* Bouton CONFIRMER - Petit bouton */}
           <button 
             onClick={() => {
               if (stepResults.length === 0 || isRoutineConfirmed) return;
 
-              // 1. Appliquer le drain total
+              // Appliquer le drain total
               update((draft: any) => {
                 draft.drainStun = (draft.drainStun || 0) + totalDrain;
               });
 
-              // 2. Ajouter tous les esprits temporaires
+              // Ajouter tous les esprits temporaires
               tempSpirits.forEach((spirit: any) => {
                 addSpirit(spirit);
               });
 
-              // 3. Marquer comme confirmé
               setIsRoutineConfirmed(true);
             }}
             disabled={stepResults.length === 0 || isRoutineConfirmed}
