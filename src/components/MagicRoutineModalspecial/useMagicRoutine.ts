@@ -146,6 +146,16 @@ const [tempBoosts, setTempBoosts] = useState<{
   const rollDice = (pool: number) => Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
   const countHits = (rolls: number[]) => rolls.filter(r => r >= 5).length;
 
+ // === NOUVELLE FONCTION GLITCH ===
+  const detectGlitch = (rolls: number[], pool: number) => {
+    const ones = rolls.filter(d => d === 1).length;
+    const isGlitch = ones > pool / 2;
+    const hits = countHits(rolls);
+    const isCriticalGlitch = isGlitch && hits === 0;
+
+    return { isGlitch, isCriticalGlitch, ones };
+  };
+
      const runRoutine = async () => {
       if (steps.length === 0 || isRunning) return;
 
@@ -168,7 +178,7 @@ const [tempBoosts, setTempBoosts] = useState<{
 
         console.log(`\n→ Début de l'étape ${stepNumber} : ${step.type.toUpperCase()}`);
 
-                               if (step.type === "summon" && step.summon) {
+                              if (step.type === "summon" && step.summon) {
           const { conjuringPool = 10, force = 4, minServices = 1, autoRetry = false } = step.summon;
 
           let services = 0;
@@ -178,11 +188,11 @@ const [tempBoosts, setTempBoosts] = useState<{
           while (services < minServices && (autoRetry || attempts === 0) && attempts < 20 && !routineStopped) {
             attempts++;
 
-            const attrs = routineAttributesRef.current;   // ← VALEURS FRAÎCHES
+            const attrs = routineAttributesRef.current;
 
             const inv = rollDice(conjuringPool);
             const spi = rollDice(force * 2);
-            const dr = rollDice(attrs.WIL + attrs.TDA);   // ← Correction ici
+            const dr = rollDice(attrs.WIL + attrs.TDA);
 
             const invH = countHits(inv);
             const spiH = countHits(spi);
@@ -194,19 +204,34 @@ const [tempBoosts, setTempBoosts] = useState<{
             services = Math.max(services, servicesThis);
             drain += drainThis;
 
+            // === GLITCH DETECTION ===
+            const invGlitch = detectGlitch(inv, conjuringPool);
+            const spiGlitch = detectGlitch(spi, force * 2);
+            const drGlitch = detectGlitch(dr, attrs.WIL + attrs.TDA);
+
+            let glitchMessage = "";
+            if (invGlitch.isCriticalGlitch || spiGlitch.isCriticalGlitch || drGlitch.isCriticalGlitch) {
+              glitchMessage = "💥 CRITICAL GLITCH !";
+              routineStopped = true;
+              console.log("💥 CRITICAL GLITCH détecté → Arrêt immédiat de la routine");
+            } else if (invGlitch.isGlitch || spiGlitch.isGlitch || drGlitch.isGlitch) {
+              glitchMessage = "⚠️ GLITCH";
+              console.log("⚠️ Glitch détecté sur cette tentative");
+            }
+
             allAttempts.push({
               invocationRolls: inv,
               spiritRolls: spi,
               drainRolls: dr,
-              drainThisAttempt: drainThis
+              drainThisAttempt: drainThis,
+              glitch: { invocation: invGlitch, spirit: spiGlitch, drain: drGlitch }
             });
 
-            console.log(`    Tentative ${attempts} → Services: ${services}/${minServices} | Drain actuel: ${drain} | Resistance Pool utilisée = ${attrs.WIL + attrs.TDA}`);
+            console.log(`    Tentative ${attempts} → Services: ${services}/${minServices} | Drain: ${drain} ${glitchMessage}`);
 
-            // === AUTO-RESTS ===
+            // Auto-rests...
             while (drain >= maxDrainThreshold && autoRestsCount < maxAutoRests && !routineStopped) {
-              const restPool = attrs.BOD + attrs.WIL;   // déjà corrigé précédemment
-
+              const restPool = attrs.BOD + attrs.WIL;
               const rolls = rollDice(restPool);
               const hits = countHits(rolls);
               const healed = Math.min(drain, hits);
@@ -214,7 +239,7 @@ const [tempBoosts, setTempBoosts] = useState<{
               drain = Math.max(0, drain - healed);
               autoRestsCount++;
 
-              console.log(`      → Auto-rest #${autoRestsCount} | Pool = ${restPool} (${attrs.BOD} BOD + ${attrs.WIL} WIL) | Hits = ${hits} | Drain récupéré = ${healed}`);
+              console.log(`      → Auto-rest #${autoRestsCount} | Pool = ${restPool} | Hits = ${hits} | Drain récupéré = ${healed}`);
 
               results.push({
                 stepNumber,
@@ -233,14 +258,13 @@ const [tempBoosts, setTempBoosts] = useState<{
 
               if (autoRestsCount >= maxAutoRests) {
                 routineStopped = true;
-                console.log("⛔ Max auto-rests atteint → arrêt complet de la routine");
               }
             }
 
             await new Promise(r => setTimeout(r, 400));
           }
 
-          // Résultat final de l'étape Summon
+          // Résultat final Summon
           results.push({
             stepNumber,
             type: "summon",
@@ -251,7 +275,6 @@ const [tempBoosts, setTempBoosts] = useState<{
             interruptedByDrain: drain >= maxDrainThreshold
           });
 
-          // === AJOUT DE L'ESPRIT TEMPORAIRE ===
           if (services >= minServices) {
             const newSpirit = {
               id: `temp-spirit-${Date.now()}`,
@@ -267,11 +290,10 @@ const [tempBoosts, setTempBoosts] = useState<{
             };
 
             setTempSpirits(prev => [...prev, newSpirit]);
-            console.log(`➕ Esprit temporaire ajouté → ${newSpirit.element} Force ${newSpirit.force}`);
           }
         } 
 
-                                            else if (step.type === "cast" && step.cast) {
+                                          else if (step.type === "cast" && step.cast) {
           const castConfig = step.cast || {};
           const { 
             castingPool = 10, 
@@ -292,7 +314,8 @@ const [tempBoosts, setTempBoosts] = useState<{
           const allAttempts: any[] = [];
 
           const currentSpirits = [...tempSpiritsRef.current];
-          let resistancePool = routineWIL + routineTDA;
+          const attrs = routineAttributesRef.current;
+          let resistancePool = attrs.WIL + attrs.TDA;
           let isSpiritCasting = false;
           let castingSpirit = null;
 
@@ -305,7 +328,7 @@ const [tempBoosts, setTempBoosts] = useState<{
             console.log(`🧙 [CAST] Mage casting (caster="${caster}" | Pool = ${resistancePool})`);
           }
 
-          while (hits < minHits && (autoRetry || attempts === 0) && attempts < 20) {
+          while (hits < minHits && (autoRetry || attempts === 0) && attempts < 20 && !routineStopped) {
             attempts++;
 
             const spellRolls = rollDice(castingPool);
@@ -339,6 +362,20 @@ const [tempBoosts, setTempBoosts] = useState<{
 
             hits = Math.max(hits, spellHits);
 
+            // === GLITCH DETECTION SUR CAST ===
+            const spellGlitch = detectGlitch(spellRolls, castingPool);
+            const drainGlitch = detectGlitch(drainRolls, resistancePool);
+
+            let glitchMessage = "";
+            if (spellGlitch.isCriticalGlitch || drainGlitch.isCriticalGlitch) {
+              glitchMessage = "💥 CRITICAL GLITCH !";
+              routineStopped = true;
+              console.log("💥 CRITICAL GLITCH sur Cast → Arrêt immédiat de la routine");
+            } else if (spellGlitch.isGlitch || drainGlitch.isGlitch) {
+              glitchMessage = "⚠️ GLITCH";
+              console.log("⚠️ Glitch détecté sur Cast");
+            }
+
             if (isSpiritCasting && castingSpirit) {
               let remaining = castingSpirit.servicesRemaining ?? castingSpirit.services ?? 0;
               remaining = Math.max(0, remaining - 1);
@@ -349,24 +386,24 @@ const [tempBoosts, setTempBoosts] = useState<{
               castingSpirit.servicesRemaining = remaining;
               castingSpirit.conditionDamage = newConditionDamage;
 
-              console.log(`      → ${castingSpirit.element?.toUpperCase()} Spirit encaisse ${spiritDrain} drain | Condition Damage: ${newConditionDamage} | Services restants: ${remaining}`);
+              console.log(`      → ${castingSpirit.element?.toUpperCase()} Spirit encaisse ${spiritDrain} drain | Condition Damage: ${newConditionDamage} | Services restants: ${remaining} ${glitchMessage}`);
             } else {
               drain += drainThis;
-              console.log(`      → Mage encaisse ${drainThis} drain`);
+              console.log(`      → Mage encaisse ${drainThis} drain ${glitchMessage}`);
             }
 
             allAttempts.push({
               spellRolls,
               drainRolls,
               drainThisAttempt: drainThis,
-              caster: isSpiritCasting ? "spirit" : "mage"
+              caster: isSpiritCasting ? "spirit" : "mage",
+              glitch: { spell: spellGlitch, drain: drainGlitch }
             });
 
             await new Promise(r => setTimeout(r, 400));
           }
 
-          // === VÉRIFICATION AUTO-REST APRÈS LA FIN DE L'ÉTAPE CAST ===
-          const attrs = routineAttributesRef.current;
+          // Vérification auto-rest après le cast
           while (drain >= maxDrainThreshold && autoRestsCount < maxAutoRests && !routineStopped) {
             const restPool = attrs.BOD + attrs.WIL;
             const rolls = rollDice(restPool);
@@ -375,8 +412,6 @@ const [tempBoosts, setTempBoosts] = useState<{
 
             drain = Math.max(0, drain - healed);
             autoRestsCount++;
-
-            console.log(`      → Auto-rest #${autoRestsCount} (après Cast) | Pool = ${restPool} | Hits = ${hits} | Drain récupéré = ${healed}`);
 
             results.push({
               stepNumber,
@@ -393,9 +428,7 @@ const [tempBoosts, setTempBoosts] = useState<{
             setStepResults([...results]);
             await new Promise(r => setTimeout(r, 700));
 
-            if (autoRestsCount >= maxAutoRests) {
-              routineStopped = true;
-            }
+            if (autoRestsCount >= maxAutoRests) routineStopped = true;
           }
 
           results.push({

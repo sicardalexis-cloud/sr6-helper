@@ -62,7 +62,7 @@ export default function RoutineResults({
               </button>
             </div>
 
-            {/* JETS PRINCIPAUX */}
+                       {/* JETS PRINCIPAUX */}
             {main && main.allAttempts?.length > 0 ? (
               <div style={{ marginBottom: "16px" }}>
                 {main.allAttempts.map((att: any, idx: number) => (
@@ -81,6 +81,31 @@ export default function RoutineResults({
                         Esp: <span style={{color: "#a5b4fc"}}>{att.spiritRolls?.join(", ") || "—"}</span><br />
                         Dr:  <span style={{color: "#f87171"}}>{att.drainRolls?.join(", ") || "—"}</span><br />
                         <strong style={{ color: "#f87171" }}>Drain causé = {att.drainThisAttempt ?? "—"}</strong>
+
+                        {/* === AFFICHAGE GLITCH === */}
+                        {att.glitch && (
+                          <div style={{ marginTop: "8px" }}>
+                            {att.glitch.invocation?.isCriticalGlitch && (
+                              <span style={{ color: "#ef4444", fontWeight: "bold" }}>💥 CRITICAL GLITCH sur Invocation</span>
+                            )}
+                            {att.glitch.spirit?.isCriticalGlitch && (
+                              <span style={{ color: "#ef4444", fontWeight: "bold" }}>💥 CRITICAL GLITCH sur Esprit</span>
+                            )}
+                            {att.glitch.drain?.isCriticalGlitch && (
+                              <span style={{ color: "#ef4444", fontWeight: "bold" }}>💥 CRITICAL GLITCH sur Drain</span>
+                            )}
+
+                            {(att.glitch.invocation?.isGlitch && !att.glitch.invocation?.isCriticalGlitch) && (
+                              <span style={{ color: "#facc15" }}>⚠️ Glitch Invocation</span>
+                            )}
+                            {(att.glitch.spirit?.isGlitch && !att.glitch.spirit?.isCriticalGlitch) && (
+                              <span style={{ color: "#facc15" }}>⚠️ Glitch Esprit</span>
+                            )}
+                            {(att.glitch.drain?.isGlitch && !att.glitch.drain?.isCriticalGlitch) && (
+                              <span style={{ color: "#facc15" }}>⚠️ Glitch Drain</span>
+                            )}
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
