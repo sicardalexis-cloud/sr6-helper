@@ -48,6 +48,7 @@ export default function MagicRoutineModal({
 
   const [editingMax, setEditingMax] = useState<"drain" | "autorests" | null>(null);
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
+  const [isRoutineConfirmed, setIsRoutineConfirmed] = useState(false);
 
   if (!isOpen) return null;
 
@@ -134,8 +135,41 @@ export default function MagicRoutineModal({
             }
           </button>
 
-          <button onClick={resetProgress} style={{ padding: "12px 20px", background: "#334155", color: "white", border: "none", borderRadius: "10px" }}>
-            Reset
+             {/* Bouton CONFIRMER - Petit bouton */}
+          <button 
+            onClick={() => {
+              if (stepResults.length === 0 || isRoutineConfirmed) return;
+
+              // 1. Appliquer le drain total
+              update((draft: any) => {
+                draft.drainStun = (draft.drainStun || 0) + totalDrain;
+              });
+
+              // 2. Ajouter tous les esprits temporaires
+              tempSpirits.forEach((spirit: any) => {
+                addSpirit(spirit);
+              });
+
+              // 3. Marquer comme confirmé
+              setIsRoutineConfirmed(true);
+            }}
+            disabled={stepResults.length === 0 || isRoutineConfirmed}
+            style={{ 
+              padding: "12px 24px", 
+              background: isRoutineConfirmed 
+                ? "#334155" 
+                : (stepResults.length > 0 ? "#22c55e" : "#334155"), 
+              color: "white", 
+              border: "none", 
+              borderRadius: "10px",
+              fontWeight: "bold",
+              cursor: (stepResults.length > 0 && !isRoutineConfirmed) ? "pointer" : "not-allowed",
+              opacity: (stepResults.length > 0 && !isRoutineConfirmed) ? "1" : "0.6"
+            }}
+          >
+            {isRoutineConfirmed 
+              ? "✅ Confirmé" 
+              : "✅ Confirmer"}
           </button>
 
           {/* Tradition */}
