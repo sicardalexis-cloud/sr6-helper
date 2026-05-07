@@ -11,6 +11,8 @@ interface SummoningResult {
   invocationRolls: number[];
   spiritRolls: number[];
   drainRolls: number[];
+  glitch: boolean;           // ← Ajouté
+  criticalGlitch: boolean;   // ← Ajouté
 }
 
 interface Props {
@@ -76,7 +78,17 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
   const rollDice = (pool: number): number[] => 
     Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
 
-  const performSummoning = () => {
+// ==================== NOUVEAU : DÉTECTION GLITCH ====================
+  const detectGlitch = (rolls: number[], hits: number) => {
+    const ones = rolls.filter(d => d === 1).length;
+    const total = rolls.length;
+    return {
+      glitch: ones >= Math.ceil(total / 2) && hits === 0,
+      criticalGlitch: ones > total / 2,
+    };
+  };
+
+    const performSummoning = () => {
     setIsRolling(true);
     let totalDrain = 0;
     let attemptsDone = 0;
@@ -95,6 +107,8 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
       const drainDamage = Math.max(0, spiritHits - drainRoll.filter(d => d >= 5).length);
       totalDrain += drainDamage;
 
+      const glitchInfo = detectGlitch(invocationRoll, invocationHits);
+
       const currentResult: SummoningResult = {
         netHits,
         drainTotal: totalDrain,
@@ -102,7 +116,16 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
         invocationRolls: invocationRoll,
         spiritRolls: spiritRoll,
         drainRolls: drainRoll,
+        glitch: glitchInfo.glitch,
+        criticalGlitch: glitchInfo.criticalGlitch,
       };
+
+      // ==================== ARRÊT SUR CRITICAL GLITCH ====================
+      if (glitchInfo.criticalGlitch) {
+        setResult(currentResult);
+        setIsRolling(false);
+        return;
+      }
 
       if (netHits >= 1 || attemptsDone >= maxAttempts || totalDrain >= drainThreshold) {
         setResult(currentResult);
@@ -271,6 +294,36 @@ export default function SummoningModal({ isOpen, onClose, addSpirit, update }: P
             <DiceDisplay dice={result.invocationRolls} label="🎲 Invocation" />
             <DiceDisplay dice={result.spiritRolls} label="🛡️ Résistance Esprit" />
             <DiceDisplay dice={result.drainRolls} label="🛡️ Résistance Drain" />
+
+            {/* === ALERTES GLITCH === */}
+            {result.criticalGlitch && (
+              <div style={{ 
+                background: "#7f1d1d", 
+                color: "#fca5a5", 
+                padding: "16px", 
+                borderRadius: "10px", 
+                textAlign: "center", 
+                fontWeight: "bold", 
+                margin: "16px 0",
+                border: "2px solid #ef4444"
+              }}>
+                ⚠️ CRITICAL GLITCH ⚠️<br />
+                L'invocation a échoué de façon catastrophique !
+              </div>
+            )}
+
+            {result.glitch && !result.criticalGlitch && (
+              <div style={{ 
+                background: "#78350f", 
+                color: "#fbbf24", 
+                padding: "12px", 
+                borderRadius: "10px", 
+                textAlign: "center", 
+                margin: "12px 0" 
+              }}>
+                ⚠️ Glitch détecté sur l'invocation
+              </div>
+            )}
 
             <div style={{ marginTop: "20px", textAlign: "center", padding: "16px", background: "#0f172a", borderRadius: "10px" }}>
               <div style={{ fontSize: "1.6rem" }}>
