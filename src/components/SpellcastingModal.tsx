@@ -47,7 +47,13 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
 
   const [castingPool, setCastingPool] = useState(10);
   const [drainResistance, setDrainResistance] = useState(6);
-  const [manualDrain, setManualDrain] = useState(3); // Slider "Drain" indépendant
+  const [manualDrain, setManualDrain] = useState(3);
+
+  // ==================== AUTO-RETRY + GLITCH ====================
+  const [desiredHits, setDesiredHits] = useState(3);
+  const [autoRetry, setAutoRetry] = useState(false);
+  const [maxAttempts, setMaxAttempts] = useState(5);
+  const [isRolling, setIsRolling] = useState(false);
 
   const [lastResult, setLastResult] = useState<any>(null);
 
@@ -57,38 +63,63 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
         .filter(Boolean) as Spell[]
     : [];
 
-  const rollDice = (pool: number): number[] =>
+  const rollDice = (pool: number): number[] => 
     Array.from({ length: pool }, () => Math.floor(Math.random() * 6) + 1);
+
+  const detectGlitch = (rolls: number[], hits: number) => {
+    const ones = rolls.filter(d => d === 1).length;
+    const total = rolls.length;
+    return {
+      glitch: ones >= Math.ceil(total / 2) && hits === 0,
+      criticalGlitch: ones > total / 2,
+    };
+  };
 
   const countHits = (rolls: number[]) => rolls.filter((d) => d >= 5).length;
 
   const castSpell = () => {
     if (!selectedSpell) return;
 
-    const spellRolls = rollDice(castingPool);
-    const drainRolls = rollDice(drainResistance);
+    setIsRolling(true);
+    let attemptsDone = 0;
 
-    const spellHits = countHits(spellRolls);
-    const drainHits = countHits(drainRolls);
+    const tryCast = () => {
+      attemptsDone++;
 
-    // Formule : Final Drain = Drain (slider) - Drain Resistance Hits (minimum 0)
-    const finalDrain = Math.max(0, manualDrain - drainHits);
+      const spellRolls = rollDice(castingPool);
+      const drainRolls = rollDice(drainResistance);
 
-    let message = "";
-    if (spellHits >= 4) message = "Outstanding success! The spell is extremely powerful.";
-    else if (spellHits >= 3) message = "Strong success.";
-    else if (spellHits >= 2) message = "Good success.";
-    else if (spellHits === 1) message = "Partial success.";
-    else message = "The spell failed or had minimal effect.";
+      const spellHits = countHits(spellRolls);
+      const drainHits = countHits(drainRolls);
+      const glitchInfo = detectGlitch(spellRolls, spellHits);
 
-    setLastResult({
-      spellHits,
-      drainHits,
-      finalDrain,
-      spellRolls,
-      drainRolls,
-      message,
-    });
+      const finalDrain = Math.max(0, manualDrain - drainHits);
+
+      const currentResult = {
+        spellHits,
+        finalDrain,
+        attempts: attemptsDone,
+        spellRolls,
+        drainRolls,
+        glitch: glitchInfo.glitch,
+        criticalGlitch: glitchInfo.criticalGlitch,
+      };
+
+      if (glitchInfo.criticalGlitch || spellHits >= desiredHits || attemptsDone >= maxAttempts) {
+        setLastResult(currentResult);
+        setIsRolling(false);
+        return;
+      }
+
+      if (autoRetry) {
+        setTimeout(tryCast, 420);
+      } else {
+        setLastResult(currentResult);
+        setIsRolling(false);
+      }
+    };
+
+    tryCast();
   };
 
   const confirmCast = () => {
@@ -128,15 +159,9 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: "column" }}>
           
-          {/* LISTE DES SORTS (masquable) */}
+          {/* LISTE DES SORTS */}
           {showSpellList && (
-            <div style={{ 
-              borderBottom: "1px solid #334155", 
-              overflowY: "auto", 
-              padding: "16px", 
-              background: "#1a2338",
-              maxHeight: "38vh"
-            }}>
+            <div style={{ borderBottom: "1px solid #334155", overflowY: "auto", padding: "16px", background: "#1a2338", maxHeight: "38vh" }}>
               <h3 style={{ color: "#67e8f9", marginBottom: "12px" }}>Known Spells</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 {knownSpells.map((spell) => (
@@ -168,35 +193,15 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
           <div style={{ flex: 1, padding: "20px", overflowY: "auto" }}>
             {selectedSpell ? (
               <>
-                <div 
-                  onClick={toggleSpellList}
-                  style={{ 
-                    cursor: "pointer", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "8px", 
-                    marginBottom: "12px" 
-                  }}
-                >
+                <div onClick={toggleSpellList} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                   <h2 style={{ color: "#c084fc", margin: 0 }}>{selectedSpell.name}</h2>
-                  <span style={{ color: "#67e8f9", fontSize: "1.4rem" }}>
-                    {showSpellList ? "▲" : "▼"}
-                  </span>
+                  <span style={{ color: "#67e8f9", fontSize: "1.4rem" }}>{showSpellList ? "▲" : "▼"}</span>
                 </div>
+
                 <p style={{ color: "#94a3b8", marginBottom: "20px" }}>{selectedSpell.frenchName}</p>
 
-                {/* Spell Info (Drain d'origine du sort) */}
-                <div style={{ 
-                  display: "flex", 
-                  gap: "20px", 
-                  marginBottom: "20px", 
-                  flexWrap: "wrap", 
-                  color: "#cbd5e1",
-                  background: "#1e2937",
-                  padding: "12px 18px",
-                  borderRadius: "10px",
-                  border: "1px solid #334155"
-                }}>
+                {/* Spell Info */}
+                <div style={{ display: "flex", gap: "20px", marginBottom: "20px", flexWrap: "wrap", color: "#cbd5e1", background: "#1e2937", padding: "12px 18px", borderRadius: "10px", border: "1px solid #334155" }}>
                   <div><strong>Type:</strong> {selectedSpell.type}</div>
                   <div><strong>Range:</strong> {selectedSpell.range}</div>
                   <div><strong>Duration:</strong> {selectedSpell.duration}</div>
@@ -204,17 +209,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                 </div>
 
                 {/* Description */}
-                <div style={{
-                  background: "#1e2937",
-                  padding: "20px",
-                  borderRadius: "10px",
-                  border: "1px solid #67e8f9",
-                  marginBottom: "24px",
-                  lineHeight: "1.65",
-                  color: "#e2e8f0",
-                  maxHeight: "32vh",
-                  overflowY: "auto"
-                }}>
+                <div style={{ background: "#1e2937", padding: "20px", borderRadius: "10px", border: "1px solid #67e8f9", marginBottom: "24px", lineHeight: "1.65", color: "#e2e8f0", maxHeight: "32vh", overflowY: "auto" }}>
                   {selectedSpell.description || "No detailed description available."}
                 </div>
 
@@ -235,58 +230,98 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
                   </div>
                 </div>
 
+                {/* Auto-retry section */}
+                <div style={{ marginTop: "16px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+                    <input type="checkbox" checked={autoRetry} onChange={(e) => setAutoRetry(e.target.checked)} />
+                    <span>Enable Auto-retry</span>
+                  </label>
+                </div>
+
+                {autoRetry && (
+                  <>
+                    <div style={{ marginTop: "12px" }}>
+                      <label>Desired Hits: <strong>{desiredHits}</strong></label>
+                      <input type="range" min="1" max="10" value={desiredHits} onChange={(e) => setDesiredHits(+e.target.value)} style={{ width: "100%" }} />
+                    </div>
+                    <div style={{ marginTop: "12px" }}>
+                      <label>Maximum Attempts: <strong>{maxAttempts}</strong></label>
+                      <input type="range" min="1" max="10" value={maxAttempts} onChange={(e) => setMaxAttempts(+e.target.value)} style={{ width: "100%" }} />
+                    </div>
+                  </>
+                )}
+
                 <button 
                   onClick={castSpell}
+                  disabled={isRolling || !selectedSpell}
                   style={{
                     width: "100%",
                     marginTop: "28px",
                     padding: "16px",
-                    background: "#22d3ee",
+                    background: isRolling ? "#64748b" : "#22d3ee",
                     color: "#0f172a",
                     fontWeight: "bold",
                     fontSize: "1.1rem",
                     border: "none",
                     borderRadius: "10px",
-                    cursor: "pointer"
+                    cursor: isRolling ? "not-allowed" : "pointer"
                   }}
                 >
-                  🎲 Cast Spell
+                  {isRolling ? "🎲 Casting in progress..." : "🎲 Cast Spell"}
                 </button>
 
-                {/* Results */}
+                {/* Dice + Results */}
                 {lastResult && (
-                  <div style={{ marginTop: "24px", padding: "20px", background: "#1e2937", borderRadius: "12px", border: "2px solid #67e8f9" }}>
-                    <h4 style={{ color: "#67e8f9", marginBottom: "16px" }}>Casting Result</h4>
-                    
-                    <DiceDisplay dice={lastResult.spellRolls} label="🎲 Spellcasting Roll" />
-                    <DiceDisplay dice={lastResult.drainRolls} label="🛡️ Drain Resistance Roll" />
+                  <>
+                    <DiceDisplay dice={lastResult.spellRolls} label="🎲 Spell Roll" />
+                    <DiceDisplay dice={lastResult.drainRolls} label="🛡️ Drain Resistance" />
+                  </>
+                )}
 
-                    <div style={{ marginTop: "20px", textAlign: "center", padding: "16px", background: "#0f172a", borderRadius: "10px" }}>
-                      <div style={{ fontSize: "1.7rem" }}>
-                        Hits: <strong style={{ color: "#22c55e" }}>{lastResult.spellHits}</strong>
+                {lastResult && (
+                  <div style={{ background: "#1e2937", padding: "20px", borderRadius: "12px", marginTop: "20px" }}>
+                    <h3 style={{ textAlign: "center", color: "#67e8f9" }}>
+                      {lastResult.attempts} attempt{lastResult.attempts > 1 ? "s" : ""}
+                    </h3>
+
+                    {lastResult.criticalGlitch && (
+                      <div style={{ background: "#7f1d1d", color: "#fca5a5", padding: "18px", borderRadius: "10px", textAlign: "center", fontWeight: "bold", margin: "16px 0", border: "2px solid #ef4444" }}>
+                        ⚠️ CRITICAL GLITCH ⚠️<br />The spell went wrong!
                       </div>
-                      <div style={{ fontSize: "1.3rem", color: "#f87171", marginTop: "8px" }}>
-                        Final Drain: <strong>{lastResult.finalDrain}</strong>
+                    )}
+
+                    {lastResult.glitch && !lastResult.criticalGlitch && (
+                      <div style={{ background: "#78350f", color: "#fbbf24", padding: "12px", borderRadius: "10px", textAlign: "center", margin: "12px 0" }}>
+                        ⚠️ Glitch detected on the roll
                       </div>
+                    )}
+
+                    <div style={{ textAlign: "center", fontSize: "1.6rem", margin: "20px 0" }}>
+                      Hits : <strong style={{ color: "#22c55e" }}>{lastResult.spellHits}</strong> / {desiredHits}
                     </div>
-
-                    <button 
-                      onClick={confirmCast}
-                      style={{
-                        marginTop: "20px",
-                        width: "100%",
-                        padding: "16px",
-                        background: "#c084fc",
-                        color: "#0f172a",
-                        fontWeight: "bold",
-                        border: "none",
-                        borderRadius: "10px",
-                        cursor: "pointer"
-                      }}
-                    >
-                      Confirm Cast — Take {lastResult.finalDrain} Drain
-                    </button>
+                    <div style={{ textAlign: "center", color: "#f87171", fontSize: "1.2rem" }}>
+                      Final Drain : <strong>{lastResult.finalDrain}</strong>
+                    </div>
                   </div>
+                )}
+
+                {lastResult && (
+                  <button 
+                    onClick={confirmCast}
+                    style={{
+                      marginTop: "20px",
+                      width: "100%",
+                      padding: "16px",
+                      background: "#c084fc",
+                      color: "#0f172a",
+                      fontWeight: "bold",
+                      border: "none",
+                      borderRadius: "10px",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Confirm Cast — Take <strong>{lastResult.finalDrain}</strong> Drain
+                  </button>
                 )}
               </>
             ) : (
