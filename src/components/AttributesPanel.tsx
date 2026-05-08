@@ -8,6 +8,7 @@ interface Props {
 
 export default function AttributesPanel({ char, update }: Props) {
   const [editingAttr, setEditingAttr] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(true);   // ← Nouvel état
 
   const handleClick = (attr: string) => {
     setEditingAttr(editingAttr === attr ? null : attr);
@@ -22,6 +23,34 @@ export default function AttributesPanel({ char, update }: Props) {
 
   const attributesList = ["BOD", "AGI", "REA", "STR", "WIL", "LOG", "INT", "CHA", "MAGIC", "ESSENCE"];
 
+  if (!isVisible) {
+    return (
+      <div style={{
+        background: "#1e2937",
+        borderRadius: "12px",
+        padding: "12px",
+        marginBottom: "16px",
+        border: "1px solid #334155",
+        textAlign: "center"
+      }}>
+        <button
+          onClick={() => setIsVisible(true)}
+          style={{
+            background: "#334155",
+            color: "#e0f2fe",
+            border: "none",
+            padding: "10px 20px",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          👁️ Show Attributes
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{
       background: "#1e2937",
@@ -30,7 +59,24 @@ export default function AttributesPanel({ char, update }: Props) {
       marginBottom: "16px",
       border: "1px solid #334155"
     }}>
-      <h3 style={{ color: "#67e8f9", marginBottom: "10px", fontSize: "1.1rem" }}>ATTRIBUTES</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <h3 style={{ color: "#67e8f9", margin: 0, fontSize: "1.1rem" }}>ATTRIBUTES</h3>
+        
+        <button
+          onClick={() => setIsVisible(false)}
+          style={{
+            background: "#334155",
+            color: "#e0f2fe",
+            border: "none",
+            padding: "6px 12px",
+            borderRadius: "6px",
+            fontSize: "0.9rem",
+            cursor: "pointer"
+          }}
+        >
+          Hide Attributes
+        </button>
+      </div>
 
       <div style={{
         display: "grid",
@@ -45,7 +91,7 @@ export default function AttributesPanel({ char, update }: Props) {
             <div key={attr} style={{
               background: "#0f172a",
               borderRadius: "8px",
-              padding: "6px 4px 2px 4px",   // très serré verticalement
+              padding: "6px 4px 2px 4px",
               textAlign: "center",
               border: isEditing ? "2px solid #22ff88" : "1px solid #334155",
               minHeight: "50px"
@@ -65,7 +111,7 @@ export default function AttributesPanel({ char, update }: Props) {
                   fontWeight: "bold",
                   color: "#f1f5f9",
                   cursor: "pointer",
-                  lineHeight: "0.95",     // réduit l'espace sous le chiffre
+                  lineHeight: "0.95",
                   padding: "0"
                 }}
               >
