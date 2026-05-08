@@ -122,14 +122,33 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
     tryCast();
   };
 
-  const confirmCast = () => {
+    const confirmCast = () => {
     if (!lastResult || !selectedSpell) return;
 
     update((draft: any) => {
+      // 1. Appliquer le drain
       draft.drainStun = (draft.drainStun || 0) + lastResult.finalDrain;
+
+      // 2. Ajouter le sort aux sorts actifs
+      if (!draft.activeSpells) draft.activeSpells = [];
+
+      const newActiveSpell = {
+        id: `spell_${Date.now()}`,
+        name: selectedSpell.name,
+        frenchName: selectedSpell.frenchName,
+        type: selectedSpell.type,
+        drain: parseInt(selectedSpell.drain) || 3,
+        sustained: true,
+        duration: selectedSpell.duration || "Sustained",
+        hits: lastResult.spellHits,           // ← Nombre de succès enregistré
+      };
+
+      draft.activeSpells.push(newActiveSpell);
     });
 
+    // Reset l'interface après confirmation
     setLastResult(null);
+    // setSelectedSpell(null);   // Décommente si tu veux revenir automatiquement à la liste des sorts
   };
 
   const toggleSpellList = () => {

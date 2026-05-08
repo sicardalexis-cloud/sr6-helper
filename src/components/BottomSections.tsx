@@ -9,7 +9,8 @@ interface Props {
   onSpellcastingClick: () => void;
   onCombatClick: () => void;
   onExtendedTestClick: () => void;
-  onRoutineClick: () => void;           // ← Ajouté pour la routine magique
+  onRoutineClick: () => void;
+  onActiveSpellsClick: () => void;     // ← Ajouté
 }
 
 export default function BottomSections({ 
@@ -20,7 +21,8 @@ export default function BottomSections({
   onSpellcastingClick,
   onCombatClick,
   onExtendedTestClick,
-  onRoutineClick                          // ← Ajouté
+  onRoutineClick,
+  onActiveSpellsClick                      // ← Ajouté
 }: Props) {
   return (
     <div style={{ 
@@ -100,6 +102,30 @@ export default function BottomSections({
         onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(103, 232, 249, 0.3)"}
       >
         ✨ SPELLS
+      </div>
+
+      {/* ACTIVE SPELLS - NOUVEAU */}
+      <div 
+        onClick={onActiveSpellsClick}
+        style={{
+          background: "rgba(165, 243, 252, 0.1)",
+          border: "2px solid #67e8f9",
+          borderRadius: "12px",
+          padding: "20px 16px",
+          color: "#67e8f9",
+          fontWeight: "bold",
+          fontSize: "1.1rem",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          cursor: "pointer",
+          transition: "all 0.2s",
+          boxShadow: "0 0 15px rgba(103, 232, 249, 0.3)"
+        }}
+        onMouseOver={(e) => e.currentTarget.style.boxShadow = "0 0 25px rgba(103, 232, 249, 0.6)"}
+        onMouseOut={(e) => e.currentTarget.style.boxShadow = "0 0 15px rgba(103, 232, 249, 0.3)"}
+      >
+        ✨ ACTIVE SPELLS
       </div>
 
       {/* SPELLCASTING */}

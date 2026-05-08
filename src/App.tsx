@@ -16,6 +16,7 @@ import SpellsModal from "./components/SpellsModal";
 import SpellcastingModal from "./components/SpellcastingModal";
 import CombatModal from "./components/CombatModal";
 import ExtendedTestModal from "./components/ExtendedTestModal";
+import ActiveSpellsModal from "./components/ActiveSpellsModal"; 
 
 // IMPORT CORRIGÉ :
 import MagicRoutineModal from "./components/MagicRoutineModalspecial/MagicRoutineModal";
@@ -64,9 +65,7 @@ export default function App() {
     };
   });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(char));
-  }, [char]);
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(char));  }, [char]);
 
   const update = useCallback((fn: (draft: any) => void) => {
     setChar((prev: any) => {
@@ -104,7 +103,7 @@ export default function App() {
   const [isCombatOpen, setIsCombatOpen] = useState(false);
   const [isExtendedTestOpen, setIsExtendedTestOpen] = useState(false);   // ← Nouveau
   const [isRoutineOpen, setIsRoutineOpen] = useState(false);
-
+  const [isActiveSpellsOpen, setIsActiveSpellsOpen] = useState(false);
   const [selectedSpirit, setSelectedSpirit] = useState<any>(null);
 
   // ==================== RENDER ====================
@@ -147,16 +146,17 @@ export default function App() {
           <MinorActions char={char} update={update} />
           <ConditionMonitors char={char} update={update} />
 
-          <BottomSections 
-            onSummoningClick={() => setIsSummoningOpen(true)}
-            onSpiritsClick={() => setIsSpiritsOpen(true)}
-            onRestClick={() => setIsHealsAndRestOpen(true)}
-            onSpellsClick={() => setIsSpellsOpen(true)}
-            onSpellcastingClick={() => setIsSpellcastingOpen(true)}
-            onCombatClick={() => setIsCombatOpen(true)}
-            onExtendedTestClick={() => setIsExtendedTestOpen(true)}   // ← Ajouté
-            onRoutineClick={() => setIsRoutineOpen(true)}
-          />
+         <BottomSections 
+  onSummoningClick={() => setIsSummoningOpen(true)}
+  onSpiritsClick={() => setIsSpiritsOpen(true)}
+  onRestClick={() => setIsHealsAndRestOpen(true)}
+  onSpellsClick={() => setIsSpellsOpen(true)}
+  onSpellcastingClick={() => setIsSpellcastingOpen(true)}
+  onCombatClick={() => setIsCombatOpen(true)}
+  onExtendedTestClick={() => setIsExtendedTestOpen(true)}
+  onRoutineClick={() => setIsRoutineOpen(true)}
+  onActiveSpellsClick={() => setIsActiveSpellsOpen(true)}   // ← Cette ligne doit être présente
+/>
         </div>
       </div>
 
@@ -169,6 +169,7 @@ export default function App() {
       <SpellcastingModal isOpen={isSpellcastingOpen} onClose={() => setIsSpellcastingOpen(false)} char={char} update={update} />
       <CombatModal isOpen={isCombatOpen} onClose={() => setIsCombatOpen(false)} char={char} update={update} />
       <MagicRoutineModal   isOpen={isRoutineOpen}   onClose={() => setIsRoutineOpen(false)}   char={char}   update={update} addSpirit={addSpirit}  />
+      <ActiveSpellsModal   isOpen={isActiveSpellsOpen}         onClose={() => setIsActiveSpellsOpen(false)} activeSpells={char.activeSpells || []} update={update} />
 
       {/* Extended Test Modal */}
       <ExtendedTestModal 
