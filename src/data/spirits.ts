@@ -201,7 +201,7 @@ export const POWER_DESCRIPTIONS: Record<string, string> = {
 
   "Concealment": "Concealment applies the Invisible (Improved) status equal to the critter’s Magic attribute. In combat, an Observe in Detail Major Action must be used to allow a Perception test to attempt to overcome the concealment. Success means the target is spotted by that character until the critter can hide again or the end of the character’s next player turn, whichever comes last. Concealment can be used simultaneously on a number of average metahuman-sized targets (Body up to 5; Body over 5 counts as 2 targets) equal to the critter’s Magic, or a number of much smaller targets equal to the critter’s Magic x 5. Concealed subjects can see each other if the critter allows it. The effect lasts until the critter stops sustaining the power.",
 
-  "Confusion": "The spirit confuses the minds of targets within (Force × 2) meters. Targets suffer a penalty equal to the spirit's Force on all mental skill and Perception tests.",
+  "Confusion": "Ce pouvoir pousse une cible à être indécise, distraite et confuse. La créature doit effectuer un test opposé de Magie + Volonté contre Volonté + Logique de la cible. Si la créature obtient des succès nets, la cible subit l’état Désorienté ainsi que l’état Confus avec un indice égal au nombre de succès nets.",
 
   "Engulf": "If the attack hits (even if damage is resisted), the target is engulfed and becomes Immobilized. At the start of the critter's turn, the engulfed target automatically suffers damage.",
 
@@ -239,15 +239,15 @@ export const POWER_DESCRIPTIONS: Record<string, string> = {
 
   "Magical Guard": "The spirit can protect a target against magic. It adds its Force to the target's magic resistance tests.",
 
-  "Movement": "The spirit can increase or decrease a target's movement speed by ± (Force × 2) meters per turn.",
+  "Movement": "Ce pouvoir permet à la créature d’accélérer ou de réduire la vitesse de sa cible. Il ne fonctionne que sur des êtres/objets capables de se déplacer, c’est-à-dire des voitures, des personnages et des créatures. La créature peut multiplier la vitesse de déplacement de la cible par une valeur maximale égale à son attribut Magie. Cette vitesse surnaturelle n’est pas forcément aisée à maîtriser. Le meneur de jeu peut demander aux personnages et créatures d’effectuer un test d’Athlétisme + Agilité dont le seuil dépend de la difficulté de la manœuvre entreprise et de la vitesse. Si la cible n’est pas consentante, la créature doit faire un test opposé de Magie + Volonté contre Logique + Volonté de la cible et peut multiplier la vitesse de la cible par son nombre de succès nets, sans pouvoir dépasser son attribut Magie. Alternativement, elle peut la ralentir en lui imposant l’état Entravé. Utiliser Mouvement sur un véhicule est plus difficile que sur des êtres vivants. Si la cible est un véhicule, la créature effectue un test de Magie + Volonté avec un seuil égal à la moitié de la Résistance de l’engin (arrondir au supérieur, minimum 2). Si la créature atteint le seuil, ajoutez chaque succès à l’attribut Accélération du véhicule puis ajoutez ou soustrayez le résultat à la Vitesse du véhicule au prochain round. La créature peut continuer d’effectuer des tests de Magie + Volonté pour augmenter ou réduire la vitesse du véhicule à chaque round de combat tant qu’elle maintient le pouvoir et que le véhicule reste sur son domaine/terrain. En fonction de la situation, ces modifications soudaines de vitesse peuvent provoquer un test d’accident (p. 206) ou un test de Pilotage.",
 
   "Natural Weapon": "The spirit has natural weapons (claws, fangs, etc.). DV = (Force / 2 + 1) P, AR = (Force × 2) / - / - / - / -",
 
-  "Noxious Breath": "The spirit exhales a toxic gas. Opposed test: Spirit's Force vs. Constitution + Willpower. The target suffers Stun damage and a penalty.",
+  "Noxious Breath": "Ce pouvoir peut neutraliser des cibles en libérant un nuage pestilentiel. C’est considéré comme une attaque à distance d’aspersion (p. 121) utilisant Agilité + Magie de la créature avec comme Scores Offensifs (Magie × 2)/ (Magie)/—/—/—. Les attributs pour l’attaque sont Vecteur : Inhalation, Rapidité : Immédiate, Virulence : Magie de la créature, Effet : dommages étourdissants, état Désorienté, état Nauséeux. Une armure est inutile contre cette attaque, mais une isolation chimique active fonctionne normalement.",
 
-  "Psychokinesis": "The spirit can move objects at a distance with physical strength equal to its Force.",
+  "Psychokinesis": "Ce pouvoir permet à une créature de déplacer un objet avec son esprit. La Force et l’Agilité de la « main » invisible sont égales aux succès obtenus au cours d’un test de Magie + Volonté ; elle se déplace de 10 mètres par round de combat et elle peut effectuer des attaques au corps à corps ou des attaques à distance en utilisant la compétence appropriée de la créature.",
 
-  "Search": "The spirit can locate a known object or person. It performs a Search test with a number of dice equal to its Force.",
+  "Search": " Pour trouver une cible, la créature effectue un test étendu de Magie + Intuition (5, 10 minutes). Beaucoup de choses peuvent compliquer cette tâche ; appliquez les modificateurs appropriés de la table Modificateurs de recherche. La créature doit avoir vu la chose qu’elle cherche à un moment ou à un autre avant le début de sa recherche. Un esprit peut rechercher toute chose dont son invocateur peut lui fournir une image mentale. Les créatures qui peuvent pénétrer dans l’espace astral peuvent y utiliser ce pouvoir, mais doivent se matérialiser pour chercher un objet inanimé sur le monde physique. Les êtres vivants dotés d’une aura peuvent être recherchés à partir de l’espace astral.",
 
   "Shadow Cloak": "The spirit can blend into shadows, becoming extremely difficult to detect in darkness.",
 
@@ -256,9 +256,9 @@ export const POWER_DESCRIPTIONS: Record<string, string> = {
   "Skill": "The spirit possesses a specialized skill (Biotech, Electronics, Engineering, etc.).",
   "Skill Specialization": "The spirit possesses a specialized skill (Biotech, Electronics, Engineering, etc.).",
 
-  "Venom": "The spirit injects a powerful venom during a close combat attack.",
+  "Venom": "La créature sécrète une dangereuse toxine (voir p. 125).Généralement, les attributs de ce poison sont Vecteur :Injection ; Rapidité : 1 round de combat ; Virulence : Magie ; Effet : état Désorienté, état Empoisonné (Magie)P. Certaines créatures peuvent avoir un venin avec des attributs différents comme un vecteur de contact ; cela est indiqué dans leur description..",
 
-  "Weather Control": "The spirit can alter weather conditions in a large area.",
+  "Weather Control": "Ce pouvoir permet à une créature de manipuler, dans le domaine du raisonnable, certaines conditions météorologiques locales. La météo désirée doit être raisonnablement possible dans l’environnement concerné. Ce pouvoir prend du temps et atteint son paroxysme quand la créature termine son test étendu de Magie + Volonté (10, 30 minutes). Malgré le nom du pouvoir, la créature ne fait qu’invoquer certaines conditions météorologiques avant de les orienter dans la direction désirée. Une créature peut invoquer une tempête, par exemple, mais ne peut contrôler la trajectoire de la foudre.",
 
   "Divining": "The spirit can read the future or obtain visions (rare power of Guidance spirits).",
 
