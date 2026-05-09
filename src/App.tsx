@@ -19,7 +19,7 @@ import ExtendedTestModal from "./components/ExtendedTestModal";
 import ActiveSpellsModal from "./components/ActiveSpellsModal"; 
 
 // IMPORT CORRIGÉ :
-import MagicRoutineModal from "./components/MagicRoutineModalspecial/MagicRoutineModal";
+import MagicRoutineModal from "./components/MagicRoutineModalclassic/MagicRoutineModal";
 
 const STORAGE_KEY = 'kage-character';
 
