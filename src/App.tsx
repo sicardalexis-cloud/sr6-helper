@@ -39,6 +39,12 @@ export default function App() {
         if (!parsed.knownSpells) parsed.knownSpells = [];
         if (!parsed.statusEffects) parsed.statusEffects = [];
         if (!parsed.activeSpirits) parsed.activeSpirits = [];
+        // Migration for new "esprit lié" fields
+        parsed.activeSpirits = (parsed.activeSpirits || []).map((s: any) => ({
+          ...s,
+          linked: s.linked ?? false,
+          linkedDate: s.linkedDate ?? '2050-01-01',
+        }));
         if (!parsed.magicallyHealed) parsed.magicallyHealed = false;
         if (!parsed.combat) parsed.combat = {};
 
@@ -77,6 +83,8 @@ export default function App() {
 
   const addSpirit = useCallback((spiritData: any) => {
     const newSpirit = {
+      linked: false,
+      linkedDate: '2050-01-01',
       ...spiritData,
       id: `spirit_${Date.now()}`,
       optionalPowers: [],

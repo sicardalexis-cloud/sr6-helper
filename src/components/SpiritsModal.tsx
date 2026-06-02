@@ -10,6 +10,8 @@ interface ActiveSpirit {
   invocationDate: string;
   solarPhase?: "Day" | "Night";
   solarTokens: number;        // 0 à 2 normalement
+  linked?: boolean;
+  linkedDate?: string;
 }
 
 interface Props {
@@ -57,13 +59,17 @@ export default function SpiritsModal({
 
       draft.activeSpirits = draft.activeSpirits
         .map((spirit: ActiveSpirit) => {
+          if (spirit.linked) {
+            // Esprit lié : ne perd pas de solar token
+            return spirit;
+          }
           const newTokens = Math.max(0, (spirit.solarTokens || 0) - 1);
           return {
             ...spirit,
             solarTokens: newTokens,
           };
         })
-        .filter((spirit: ActiveSpirit) => spirit.solarTokens > 0);   // ← CHANGEMENT ICI
+        .filter((spirit: ActiveSpirit) => spirit.linked || (spirit.solarTokens || 0) > 0);
     });
   };
 
@@ -88,6 +94,8 @@ export default function SpiritsModal({
           activeSpirits.map((spirit) => {
             const maxCM = 8 + Math.ceil(spirit.force / 2);
             const tokens = spirit.solarTokens ?? 2;
+            const linked = !!spirit.linked;
+            const linkedDate = spirit.linkedDate || '2050-01-01';
 
             return (
               <div key={spirit.id} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #334155" }}>
@@ -104,6 +112,34 @@ export default function SpiritsModal({
                 <div style={{ display: "flex", gap: "20px", marginBottom: "12px", color: "#94a3b8" }}>
                   <div>Services : <strong>{spirit.servicesRemaining}</strong></div>
                   <div>Solar Tokens : <strong style={{ color: tokens > 0 ? "#22c55e" : "#f87171" }}>{tokens}/2</strong></div>
+                </div>
+
+                {/* Esprit lié + date (ne perd pas de token au "avancer phase solaire") */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#94a3b8", fontSize: "0.9rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={linked}
+                      onChange={(e) => updateSpirit(spirit.id, { linked: e.target.checked })}
+                      style={{ accentColor: "#67e8f9", transform: "scale(1.1)" }}
+                    />
+                    esprit lié
+                  </label>
+                  <input
+                    type="date"
+                    value={linkedDate}
+                    onChange={(e) => updateSpirit(spirit.id, { linkedDate: e.target.value })}
+                    style={{
+                      background: "#1e2937",
+                      color: "#e0f2fe",
+                      border: "1px solid #475569",
+                      borderRadius: "4px",
+                      padding: "3px 6px",
+                      fontSize: "0.8rem",
+                      cursor: "pointer"
+                    }}
+                    title="Date de lien (par défaut 1er janvier 2050)"
+                  />
                 </div>
 
                 <div style={{ marginBottom: "12px" }}>
@@ -144,7 +180,7 @@ export default function SpiritsModal({
             onClick={advanceSolarPhase}
             style={{ width: "100%", padding: "14px", marginTop: "16px", background: "#334155", color: "#94a3b8", border: "none", borderRadius: "8px", fontWeight: "bold" }}
           >
-            Avancer Phase Solaire (consomme 1 token par esprit)
+            Avancer Phase Solaire (consomme 1 token par esprit non lié)
           </button>
         )}
 
