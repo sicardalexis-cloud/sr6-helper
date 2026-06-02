@@ -12,6 +12,8 @@ interface ActiveSpirit {
   solarTokens: number;        // 0 à 2 normalement
   linked?: boolean;
   linkedDate?: string;
+  name?: string;
+  optionalPowers?: string[];
 }
 
 interface Props {
@@ -101,7 +103,7 @@ export default function SpiritsModal({
               <div key={spirit.id} style={{ background: "#1e2937", padding: "16px", borderRadius: "12px", marginBottom: "12px", border: "1px solid #334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                   <div>
-                    <strong style={{ color: "#c084fc", fontSize: "1.4rem" }}>{spirit.element}</strong>{" "}
+                    <strong style={{ color: "#c084fc", fontSize: "1.4rem" }}>{spirit.name || spirit.element}</strong>{" "}
                     <span style={{ color: "#67e8f9" }}>Force {spirit.force}</span>
                   </div>
                   <button onClick={() => onViewSpirit(spirit)} style={{ padding: "8px 16px", background: "#4f46e5", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>

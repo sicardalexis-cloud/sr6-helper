@@ -175,7 +175,7 @@ export default function RoutineResults({
               alignItems: "center"
             }}>
               <div>
-                <strong style={{ color: "#c084fc" }}>{spirit.element?.toUpperCase() || "UNKNOWN"}</strong> Spirit<br />
+                <strong style={{ color: "#c084fc" }}>{(spirit.name || spirit.element)?.toUpperCase() || "UNKNOWN"}</strong> Spirit<br />
                 Force : <strong>{spirit.force}</strong> | 
                 Services restants : <strong style={{color: "#22c55e"}}>{spirit.servicesRemaining}</strong><br />
                 <span style={{color: "#f87171"}}>Condition Damage : {spirit.conditionDamage || 0}</span>

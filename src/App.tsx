@@ -39,11 +39,13 @@ export default function App() {
         if (!parsed.knownSpells) parsed.knownSpells = [];
         if (!parsed.statusEffects) parsed.statusEffects = [];
         if (!parsed.activeSpirits) parsed.activeSpirits = [];
-        // Migration for new "esprit lié" fields
+        // Migration for new "esprit lié" fields + rename + optionalPowers
         parsed.activeSpirits = (parsed.activeSpirits || []).map((s: any) => ({
           ...s,
           linked: s.linked ?? false,
           linkedDate: s.linkedDate ?? '2050-01-01',
+          optionalPowers: s.optionalPowers || [],
+          name: s.name || undefined,
         }));
         if (!parsed.magicallyHealed) parsed.magicallyHealed = false;
         if (!parsed.combat) parsed.combat = {};
@@ -85,9 +87,10 @@ export default function App() {
     const newSpirit = {
       linked: false,
       linkedDate: '2050-01-01',
+      optionalPowers: [],
+      name: undefined,
       ...spiritData,
       id: `spirit_${Date.now()}`,
-      optionalPowers: [],
     };
 
     update((draft) => {
@@ -171,7 +174,7 @@ export default function App() {
       {/* ==================== MODALS ==================== */}
       <SummoningModal isOpen={isSummoningOpen} onClose={() => setIsSummoningOpen(false)} addSpirit={addSpirit} update={update} />
       <SpiritsModal isOpen={isSpiritsOpen} onClose={() => setIsSpiritsOpen(false)} activeSpirits={char.activeSpirits || []} update={update} onViewSpirit={openSpiritSheet} />
-      <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} />
+      <SpiritSheetModal isOpen={isSpiritSheetOpen} onClose={() => { setIsSpiritSheetOpen(false); setSelectedSpirit(null); }} spirit={selectedSpirit} update={update} />
       <HealsAndRestModal isOpen={isHealsAndRestOpen} onClose={() => setIsHealsAndRestOpen(false)} char={char} update={update} />
       <SpellsModal isOpen={isSpellsOpen} onClose={() => setIsSpellsOpen(false)} char={char} update={update} />
       <SpellcastingModal isOpen={isSpellcastingOpen} onClose={() => setIsSpellcastingOpen(false)} char={char} update={update} />

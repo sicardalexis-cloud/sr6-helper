@@ -6,14 +6,16 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   spirit: any;
+  update?: (fn: (draft: any) => void) => void;
 }
 
-export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
+export default function SpiritSheetModal({ isOpen, onClose, spirit, update }: Props) {
 
   // ==================== STATES ====================
   const [selectedOptionalPowers, setSelectedOptionalPowers] = useState<Set<string>>(
     new Set(spirit?.optionalPowers || [])
   );
+  const [customName, setCustomName] = useState<string>(spirit?.name || "");
   const [selectedPower, setSelectedPower] = useState<string | null>(null);
   const [editedAttributes, setEditedAttributes] = useState<Record<string, number>>({});
   const [editingAttr, setEditingAttr] = useState<string | null>(null);
@@ -24,6 +26,16 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
       setSelectedPower(null);
     }
   }, [isOpen]);
+
+  // Re-sync local state when a (new) spirit is shown in the modal
+  useEffect(() => {
+    if (isOpen && spirit) {
+      setSelectedOptionalPowers(new Set(spirit.optionalPowers || []));
+      setCustomName(spirit.name || "");
+      setEditedAttributes({});
+      setEditingAttr(null);
+    }
+  }, [isOpen, spirit?.id]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
@@ -39,7 +51,32 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
   const toggleOptionalPower = (power: string) => {
     const newSet = new Set(selectedOptionalPowers);
     newSet.has(power) ? newSet.delete(power) : newSet.add(power);
+    const newArray = Array.from(newSet);
     setSelectedOptionalPowers(newSet);
+
+    // Persist optional powers
+    if (update && spirit?.id) {
+      update((draft: any) => {
+        if (!draft.activeSpirits) return;
+        const idx = draft.activeSpirits.findIndex((s: any) => s.id === spirit.id);
+        if (idx !== -1) {
+          draft.activeSpirits[idx].optionalPowers = newArray;
+        }
+      });
+    }
+  };
+
+  const saveCustomName = (newName: string) => {
+    setCustomName(newName);
+    if (update && spirit?.id) {
+      update((draft: any) => {
+        if (!draft.activeSpirits) return;
+        const idx = draft.activeSpirits.findIndex((s: any) => s.id === spirit.id);
+        if (idx !== -1) {
+          draft.activeSpirits[idx].name = newName.trim() || undefined;
+        }
+      });
+    }
   };
 
   const showPowerDescription = (power: string) => {
@@ -104,9 +141,29 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
         
         {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-          <h2 style={{ color: "#67e8f9", margin: 0 }}>
-            {spirit.element} — Force {F}
-          </h2>
+          <div>
+            <input
+              type="text"
+              value={customName}
+              placeholder={spirit.element}
+              onChange={(e) => saveCustomName(e.target.value)}
+              style={{
+                background: "transparent",
+                border: "1px solid #475569",
+                color: "#67e8f9",
+                fontSize: "1.35rem",
+                fontWeight: "bold",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                minWidth: "180px",
+                maxWidth: "320px"
+              }}
+            />
+            <span style={{ color: "#94a3b8", marginLeft: "8px" }}>— Force {F}</span>
+            {customName && (
+              <span style={{ color: "#64748b", fontSize: "0.9rem", marginLeft: "6px" }}>({spirit.element})</span>
+            )}
+          </div>
           <button 
             onClick={onClose} 
             style={{ fontSize: "2rem", background: "none", border: "none", color: "#94a3b8", cursor: "pointer" }}
