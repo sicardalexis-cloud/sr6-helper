@@ -52,6 +52,17 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
     return editedAttributes[attr] !== undefined ? editedAttributes[attr] : base;
   };
 
+  // Initiative calculations (live updates when REA/INT/WIL are edited via the attributes grid)
+  const rea = getAttribute("REA");
+  const int = getAttribute("INT");
+  const wil = getAttribute("WIL");
+  const physInit = stats.initiativePhysical || { baseModifier: 2, dice: 2 };
+  const astrInit = stats.initiativeAstral || { baseModifier: 3, dice: 3 };
+  const physBase = rea + int + (physInit.baseModifier || 0);
+  const physDice = physInit.dice || 2;
+  const astrBase = int + wil + (astrInit.baseModifier || 0);
+  const astrDice = astrInit.dice || 3;
+
   const modifyAttribute = (attr: string, delta: number) => {
     setEditedAttributes(prev => ({
       ...prev,
@@ -175,6 +186,37 @@ export default function SpiritSheetModal({ isOpen, onClose, spirit }: Props) {
                 </div>
               );
             })}
+            {/* Initiative cards - added inside the existing grid, same card style, no appearance change */}
+            <div key="ip" style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "1.55rem",
+                  fontWeight: "bold",
+                  color: "#67e8f9",
+                  lineHeight: 1,
+                  padding: "4px 4px",
+                  borderRadius: "8px",
+                }}
+              >
+                {physBase}+{physDice}D6
+              </div>
+              <div style={{ fontSize: "0.9rem", color: "#94a3b8", marginTop: "2px" }}>IP</div>
+            </div>
+            <div key="ia" style={{ textAlign: "center" }}>
+              <div
+                style={{
+                  fontSize: "1.55rem",
+                  fontWeight: "bold",
+                  color: "#67e8f9",
+                  lineHeight: 1,
+                  padding: "4px 4px",
+                  borderRadius: "8px",
+                }}
+              >
+                {astrBase}+{astrDice}D6
+              </div>
+              <div style={{ fontSize: "0.9rem", color: "#94a3b8", marginTop: "2px" }}>IA</div>
+            </div>
           </div>
         </div>
 
