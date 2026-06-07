@@ -145,9 +145,39 @@ export default function MagicRoutineModal({
             onClick={() => {
               if (stepResults.length === 0 || isRoutineConfirmed) return;
 
-              // Appliquer le drain total
+              // Appliquer le drain total + les sorts castés avec succès (sustained spells de la routine)
               update((draft: any) => {
                 draft.drainStun = (draft.drainStun || 0) + totalDrain;
+
+                if (!draft.activeSpells) draft.activeSpells = [];
+
+                // Transférer les sorts "reussis" (atteint minHits, non "boost interne à la routine")
+                steps.forEach((step: any, idx: number) => {
+                  if (step.type !== "cast" || !step.cast?.spellId) return;
+                  if (step.cast.increaseAttribute) return; // option "Increase Attribute (Boost)" = aide simu drain, pas un sort à activer
+
+                  const stepRes = stepResults.find((r: any) => r.stepNumber === idx + 1 && r.type === "cast");
+                  if (!stepRes) return;
+
+                  const minHits = step.cast.minHits || 1;
+                  const achieved = stepRes.services || 0;
+                  if (achieved < minHits) return;
+
+                  const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
+                  if (!spell) return;
+
+                  const newActiveSpell = {
+                    id: `spell_routine_${Date.now()}_${idx}`,
+                    name: spell.name,
+                    frenchName: spell.frenchName,
+                    type: spell.type,
+                    drain: parseInt(String(spell.drain)) || 3,
+                    sustained: true,
+                    duration: spell.duration || "Sustained",
+                    hits: achieved,
+                  };
+                  draft.activeSpells.push(newActiveSpell);
+                });
               });
 
               // Ajouter tous les esprits temporaires
