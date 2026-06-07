@@ -163,41 +163,50 @@ export default function MagicRoutineModal({
 
                 let addedCount = 0;
 
-                // Transférer TOUS les sorts castés pendant la routine vers activeSpells
-                // (que ce soit par le mage ou par un esprit via "Caster: Spirit").
-                // Le minHits ne sert qu'à l'auto-retry pendant l'exécution de la routine.
-                // Une fois confirmé, on prend le résultat final obtenu (achieved hits),
-                // même s'il est inférieur au seuil configuré.
-                // Seuls les steps "Increase Attribute (Boost)" (aide simu) sont exclus.
+                // Build set of stepNumbers that are "boost sim" casts.
+                // We only skip them for persisting if they were NOT actually cast by a spirit.
+                // Reason: user may use "Increase Attribute (Boost)" + Caster=Spirit to have a spirit
+                // cast a real spell while also getting the prep boost effect. In that case we still
+                // want the spell in activeSpells.
+                const boostStepNums = new Set<number>();
                 steps.forEach((step: any, idx: number) => {
-                  const stepNum = idx + 1;
-                  if (step.type !== "cast" || !step.cast?.spellId) {
-                    if (step.type === "cast") {
-                      console.log(`Step ${stepNum}: skipped (no spellId or invalid cast config)`, step.cast);
-                    }
-                    return;
+                  if (step.type === "cast" && step.cast?.increaseAttribute && step.cast?.spellId) {
+                    boostStepNums.add(idx + 1);
                   }
-                  if (step.cast.increaseAttribute) {
-                    console.log(`Step ${stepNum}: skipped (increaseAttribute boost sim)`);
+                });
+
+                // Drive from the actual results recorded during the run.
+                // Every spell that was *cast* (by mage or by spirit) during the routine
+                // gets transferred, unless it was a pure mage boost-sim step.
+                const castResults = stepResults.filter((r: any) => r.type === "cast" && r.spellId);
+                console.log("castResults found in stepResults:", castResults);
+
+                castResults.forEach((res: any) => {
+                  const stepNum = res.stepNumber;
+                  const wasActuallySpiritCast = !!res.isSpiritCasting;
+
+                  if (boostStepNums.has(stepNum) && !wasActuallySpiritCast) {
+                    console.log(`Step ${stepNum}: skipped (increaseAttribute boost sim result - mage cast)`);
                     return;
                   }
 
-                  const stepRes = stepResults.find((r: any) => r.stepNumber === stepNum && r.type === "cast");
-                  if (!stepRes) {
-                    console.warn(`Step ${stepNum}: NO matching cast result found in stepResults!`, { lookingForStepNum: stepNum, allCastResults: stepResults.filter((r:any)=>r.type==="cast") });
-                    return;
-                  }
+                  // Find the original step config (for spellId confirmation + caster info)
+                  const stepIdx = steps.findIndex((s: any, i: number) => (i + 1) === stepNum);
+                  const step = stepIdx !== -1 ? steps[stepIdx] : null;
 
-                  const achieved = stepRes.services || 0;
-                  console.log(`Step ${stepNum} [${step.cast.caster || "mage"}]: found result, achieved=${achieved}, isSpiritCasting=${stepRes.isSpiritCasting}, spellId=${step.cast.spellId}`);
+                  const spellIdToUse = (step && step.cast?.spellId) || res.spellId;
 
-                  const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
+                  const spell = ALL_SPELLS.find(s => s.id === spellIdToUse);
                   if (!spell) {
-                    console.warn(`Step ${stepNum}: spell not found in ALL_SPELLS for id`, step.cast.spellId);
+                    console.warn(`Step ${stepNum}: spell not found in ALL_SPELLS for id`, spellIdToUse);
                     return;
                   }
 
-                  const isSpiritCast = step.cast.caster === "spirit" || !!stepRes.isSpiritCasting;
+                  const achieved = res.services || 0;
+                  const casterFromConfig = step?.cast?.caster || "mage";
+                  const isSpiritCast = casterFromConfig === "spirit" || wasActuallySpiritCast;
+
+                  console.log(`Step ${stepNum} [${casterFromConfig}]: result present, achieved=${achieved}, isSpiritCasting=${res.isSpiritCasting}, spellId=${spellIdToUse}`);
 
                   const newActiveSpell = {
                     id: `spell_routine_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
