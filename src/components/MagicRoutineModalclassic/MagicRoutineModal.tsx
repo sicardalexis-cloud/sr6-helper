@@ -167,7 +167,7 @@ export default function MagicRoutineModal({
                   if (!spell) return;
 
                   const newActiveSpell = {
-                    id: `spell_routine_${Date.now()}_${idx}`,
+                    id: `spell_routine_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
                     name: spell.name,
                     frenchName: spell.frenchName,
                     type: spell.type,

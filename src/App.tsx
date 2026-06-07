@@ -84,13 +84,17 @@ export default function App() {
   }, []);
 
   const addSpirit = useCallback((spiritData: any) => {
+    // ID unique robuste : timestamp + random pour éviter les collisions
+    // (surtout quand on ajoute plusieurs esprits d'un coup depuis la Routine Magique)
+    const uniqueId = `spirit_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
     const newSpirit = {
       linked: false,
       linkedDate: '2050-01-01',
       optionalPowers: [],
       name: undefined,
       ...spiritData,
-      id: `spirit_${Date.now()}`,
+      id: uniqueId,   // on force toujours un ID frais et unique ici
     };
 
     update((draft) => {

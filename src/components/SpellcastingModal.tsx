@@ -133,7 +133,7 @@ export default function SpellcastingModal({ isOpen, onClose, char, update }: Pro
       if (!draft.activeSpells) draft.activeSpells = [];
 
       const newActiveSpell = {
-        id: `spell_${Date.now()}`,
+        id: `spell_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
         name: selectedSpell.name,
         frenchName: selectedSpell.frenchName,
         type: selectedSpell.type,

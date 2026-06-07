@@ -277,7 +277,7 @@ const [tempBoosts, setTempBoosts] = useState<{
 
           if (services >= minServices) {
             const newSpirit = {
-              id: `temp-spirit-${Date.now()}`,
+              id: `temp-spirit-${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
               element: step.summon.spiritType,
               force: step.summon.force,
               servicesRemaining: services,
