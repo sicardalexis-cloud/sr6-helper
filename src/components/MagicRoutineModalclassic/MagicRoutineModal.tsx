@@ -88,7 +88,12 @@ export default function MagicRoutineModal({
           alignItems: "center",
           background: "#1e2937"
         }}>
-          <h2 style={{ margin: 0, color: "#c084fc" }}>🧙 Routine Magique Journalière</h2>
+          <h2 style={{ margin: 0, color: "#c084fc" }}>
+            🧙 Routine Magique Journalière
+            <span style={{ fontSize: '10px', color: '#64748b', marginLeft: 8, fontWeight: 'normal' }}>
+              (spirit-cast fix)
+            </span>
+          </h2>
           <button onClick={onClose} style={{ background: "#334155", color: "white", border: "none", padding: "8px 16px", borderRadius: "8px", cursor: "pointer" }}>
             ✕ Fermer
           </button>
