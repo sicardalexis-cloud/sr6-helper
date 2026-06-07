@@ -150,11 +150,18 @@ export default function MagicRoutineModal({
             onClick={() => {
               if (stepResults.length === 0 || isRoutineConfirmed) return;
 
+              console.groupCollapsed("%c[ROUTINE CONFIRM] Starting spell transfer", "color:#c084fc;font-weight:bold");
+              console.log("steps (configs):", steps);
+              console.log("stepResults (all):", stepResults);
+              console.log("tempSpirits at confirm:", tempSpirits);
+
               // Appliquer le drain total + les sorts castés avec succès (sustained spells de la routine)
               update((draft: any) => {
                 draft.drainStun = (draft.drainStun || 0) + totalDrain;
 
                 if (!draft.activeSpells) draft.activeSpells = [];
+
+                let addedCount = 0;
 
                 // Transférer TOUS les sorts castés pendant la routine vers activeSpells
                 // (que ce soit par le mage ou par un esprit via "Caster: Spirit").
@@ -163,16 +170,32 @@ export default function MagicRoutineModal({
                 // même s'il est inférieur au seuil configuré.
                 // Seuls les steps "Increase Attribute (Boost)" (aide simu) sont exclus.
                 steps.forEach((step: any, idx: number) => {
-                  if (step.type !== "cast" || !step.cast?.spellId) return;
-                  if (step.cast.increaseAttribute) return; // aide simu drain seulement, pas un sort à sustainer
+                  const stepNum = idx + 1;
+                  if (step.type !== "cast" || !step.cast?.spellId) {
+                    if (step.type === "cast") {
+                      console.log(`Step ${stepNum}: skipped (no spellId or invalid cast config)`, step.cast);
+                    }
+                    return;
+                  }
+                  if (step.cast.increaseAttribute) {
+                    console.log(`Step ${stepNum}: skipped (increaseAttribute boost sim)`);
+                    return;
+                  }
 
-                  const stepRes = stepResults.find((r: any) => r.stepNumber === idx + 1 && r.type === "cast");
-                  if (!stepRes) return;
+                  const stepRes = stepResults.find((r: any) => r.stepNumber === stepNum && r.type === "cast");
+                  if (!stepRes) {
+                    console.warn(`Step ${stepNum}: NO matching cast result found in stepResults!`, { lookingForStepNum: stepNum, allCastResults: stepResults.filter((r:any)=>r.type==="cast") });
+                    return;
+                  }
 
                   const achieved = stepRes.services || 0;
+                  console.log(`Step ${stepNum} [${step.cast.caster || "mage"}]: found result, achieved=${achieved}, isSpiritCasting=${stepRes.isSpiritCasting}, spellId=${step.cast.spellId}`);
 
                   const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
-                  if (!spell) return;
+                  if (!spell) {
+                    console.warn(`Step ${stepNum}: spell not found in ALL_SPELLS for id`, step.cast.spellId);
+                    return;
+                  }
 
                   const isSpiritCast = step.cast.caster === "spirit" || !!stepRes.isSpiritCasting;
 
@@ -185,11 +208,18 @@ export default function MagicRoutineModal({
                     sustained: true,
                     duration: spell.duration || "Sustained",
                     hits: achieved,
-                    castBySpirit: isSpiritCast,   // info pour traçabilité (esprit a casté/sustaine)
+                    castBySpirit: isSpiritCast,
                   };
                   draft.activeSpells.push(newActiveSpell);
+                  addedCount++;
+                  console.log(`  -> ADDED to activeSpells:`, newActiveSpell);
                 });
+
+                console.log(`Total spells added in this confirm: ${addedCount}`);
+                console.log("draft.activeSpells after pushes:", draft.activeSpells);
               });
+
+              console.groupEnd();
 
               // Ajouter tous les esprits temporaires
               tempSpirits.forEach((spirit: any) => {
