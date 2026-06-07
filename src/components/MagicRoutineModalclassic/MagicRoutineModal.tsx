@@ -151,9 +151,12 @@ export default function MagicRoutineModal({
 
                 if (!draft.activeSpells) draft.activeSpells = [];
 
-                // Transférer les sorts "réussis" de la routine vers activeSpells
-                // → On inclut les casts par le mage ET les casts par un esprit (caster: "spirit")
-                //   (seuls les "Increase Attribute (Boost)" internes à la simu de drain sont exclus)
+                // Transférer TOUS les sorts castés pendant la routine vers activeSpells
+                // (que ce soit par le mage ou par un esprit via "Caster: Spirit").
+                // Le minHits ne sert qu'à l'auto-retry pendant l'exécution de la routine.
+                // Une fois confirmé, on prend le résultat final obtenu (achieved hits),
+                // même s'il est inférieur au seuil configuré.
+                // Seuls les steps "Increase Attribute (Boost)" (aide simu) sont exclus.
                 steps.forEach((step: any, idx: number) => {
                   if (step.type !== "cast" || !step.cast?.spellId) return;
                   if (step.cast.increaseAttribute) return; // aide simu drain seulement, pas un sort à sustainer
@@ -161,9 +164,7 @@ export default function MagicRoutineModal({
                   const stepRes = stepResults.find((r: any) => r.stepNumber === idx + 1 && r.type === "cast");
                   if (!stepRes) return;
 
-                  const minHits = step.cast.minHits || 1;
                   const achieved = stepRes.services || 0;
-                  if (achieved < minHits) return;
 
                   const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
                   if (!spell) return;
