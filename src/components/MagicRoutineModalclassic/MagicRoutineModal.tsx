@@ -151,10 +151,12 @@ export default function MagicRoutineModal({
 
                 if (!draft.activeSpells) draft.activeSpells = [];
 
-                // Transférer les sorts "reussis" (atteint minHits, non "boost interne à la routine")
+                // Transférer les sorts "réussis" de la routine vers activeSpells
+                // → On inclut les casts par le mage ET les casts par un esprit (caster: "spirit")
+                //   (seuls les "Increase Attribute (Boost)" internes à la simu de drain sont exclus)
                 steps.forEach((step: any, idx: number) => {
                   if (step.type !== "cast" || !step.cast?.spellId) return;
-                  if (step.cast.increaseAttribute) return; // option "Increase Attribute (Boost)" = aide simu drain, pas un sort à activer
+                  if (step.cast.increaseAttribute) return; // aide simu drain seulement, pas un sort à sustainer
 
                   const stepRes = stepResults.find((r: any) => r.stepNumber === idx + 1 && r.type === "cast");
                   if (!stepRes) return;
@@ -166,6 +168,8 @@ export default function MagicRoutineModal({
                   const spell = ALL_SPELLS.find(s => s.id === step.cast.spellId);
                   if (!spell) return;
 
+                  const isSpiritCast = step.cast.caster === "spirit" || !!stepRes.isSpiritCasting;
+
                   const newActiveSpell = {
                     id: `spell_routine_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
                     name: spell.name,
@@ -175,6 +179,7 @@ export default function MagicRoutineModal({
                     sustained: true,
                     duration: spell.duration || "Sustained",
                     hits: achieved,
+                    castBySpirit: isSpiritCast,   // info pour traçabilité (esprit a casté/sustaine)
                   };
                   draft.activeSpells.push(newActiveSpell);
                 });

@@ -74,6 +74,13 @@ export default function ActiveSpellsModal({
                       🎯 {spell.hits} succès
                     </div>
                   )}
+
+                  {/* Info si le sort a été lancé par un esprit pendant la routine */}
+                  {spell.castBySpirit && (
+                    <div style={{ marginTop: "4px", color: "#eab308", fontSize: "0.85rem" }}>
+                      🌟 Lancé / maintenu par un esprit
+                    </div>
+                  )}
                 </div>
 
                 <button 
