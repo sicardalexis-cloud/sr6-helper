@@ -10,6 +10,7 @@ interface ActiveSpell {
   sustained: boolean;
   duration?: string;
   hits?: number;           // ← Ajouté pour afficher les succès
+  castBySpirit?: boolean;  // ← Ajouté pour les sorts lancés par esprit via la routine magique
 }
 
 interface Props {
